@@ -1,0 +1,61 @@
+{
+  "name": "@tim-smart/actualbudget-sync",
+  "version": "0.0.0",
+  "type": "module",
+  "description": "",
+  "publishConfig": {
+    "access": "public",
+    "directory": "dist"
+  },
+  "packageManager": "pnpm@9.8.0",
+  "repository": {
+    "url": "https://github.com/tim-smart/",
+    "type": "git"
+  },
+  "scripts": {
+    "codegen": "build-utils prepare-v2",
+    "build": "pnpm build-esm && pnpm build-annotate && pnpm build-cjs && build-utils pack-v2",
+    "build-esm": "tsc -b tsconfig.json",
+    "build-cjs": "babel build/esm --plugins @babel/transform-export-namespace-from --plugins @babel/transform-modules-commonjs --out-dir build/cjs --source-maps",
+    "build-annotate": "babel build/esm --plugins annotate-pure-calls --out-dir build/esm --source-maps",
+    "check": "tsc -b tsconfig.json",
+    "changeset-version": "changeset version",
+    "changeset-publish": "pnpm build && changeset publish"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@actual-app/api": "^6.9.0",
+    "@effect/language-service": "^0.1.0",
+    "effect": "^3.6.6",
+    "playwright": "^1.46.1",
+    "prettier": "^3.3.3",
+    "tsup": "^8.2.4",
+    "tsx": "^4.17.0",
+    "typescript": "^5.5.4",
+    "@babel/cli": "^7.24.8",
+    "@babel/core": "^7.25.2",
+    "@babel/plugin-transform-export-namespace-from": "^7.24.7",
+    "@babel/plugin-transform-modules-commonjs": "^7.24.8",
+    "@changesets/changelog-github": "^0.5.0",
+    "@changesets/cli": "^2.27.7",
+    "@effect/build-utils": "^0.7.7",
+    "babel-plugin-annotate-pure-calls": "^0.4.0",
+    "glob": "^11.0.0",
+    "rimraf": "^6.0.1"
+  },
+  "peerDependencies": {
+    "@actual-app/api": "^6.9.0",
+    "effect": "^3.6.6",
+    "playwright": "^1.46.1"
+  },
+  "effect": {
+    "generateExports": {
+      "include": [
+        "*.ts",
+        "Bank/*.ts"
+      ]
+    }
+  }
+}
