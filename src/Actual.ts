@@ -15,28 +15,6 @@ const make = Effect.gen(function* () {
   const password = yield* Config.redacted("password")
   const syncId = yield* Config.string("syncId")
 
-  yield* Effect.acquireRelease(
-    Effect.tryPromise({
-      try: () =>
-        Api.init({
-          dataDir,
-          serverURL: server,
-          password: Redacted.value(password),
-        }),
-      catch: (cause) => new ActualError({ cause }),
-    }),
-    (_) => Effect.promise(() => Api.shutdown()),
-  )
-
-  const sync = Effect.promise(() => Api.sync())
-
-  yield* Effect.tryPromise({
-    try: () => Api.downloadBudget(syncId),
-    catch: (cause) => new ActualError({ cause }),
-  })
-  yield* Effect.addFinalizer(() => sync)
-  yield* sync
-
   const use = <A>(
     f: (api: typeof Api) => Promise<A>,
   ): Effect.Effect<A, ActualError> =>
@@ -44,6 +22,23 @@ const make = Effect.gen(function* () {
       try: () => f(Api),
       catch: (cause) => new ActualError({ cause }),
     })
+
+  yield* Effect.acquireRelease(
+    use((_) =>
+      _.init({
+        dataDir,
+        serverURL: server,
+        password: Redacted.value(password),
+      }),
+    ),
+    () => Effect.promise(() => Api.shutdown()),
+  )
+
+  const sync = Effect.promise(() => Api.sync())
+
+  yield* use((_) => _.downloadBudget(syncId))
+  yield* Effect.addFinalizer(() => sync)
+  yield* sync
 
   return { use } as const
 }).pipe(Effect.withConfigProvider(configProviderNested("actual")))
