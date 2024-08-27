@@ -13,6 +13,8 @@
     "strictNullChecks": true,
     "target": "ESNext",
     "incremental": true,
+    "declaration": true,
+    "declarationMap": true,
     "plugins": [{ "name": "@effect/language-service" }],
     "tsBuildInfoFile": "./tsconfig.tsbuildinfo"
   },
