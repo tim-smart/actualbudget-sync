@@ -95,7 +95,11 @@ const make = Effect.gen(function* () {
   return Bank.of({
     exportAccount: (accountId) =>
       Effect.gen(function* () {
-        const account = yield* accountByName(accountId)
+        const account = yield* accountByName(accountId).pipe(
+          Effect.mapError(
+            () => new BankError({ bank: "Bnz", reason: "AccountNotFound" }),
+          ),
+        )
         const from = now.pipe(DateTime.subtract({ days: 30 }))
         const transactions = yield* listTransactions({
           accountId: account.id,
@@ -105,12 +109,7 @@ const make = Effect.gen(function* () {
           .filter((t) => !isPendingInternational(t))
           .filter((t) => !isFuture(t))
           .map(convert)
-      }).pipe(
-        Effect.catchTags({
-          NoSuchElementException: () =>
-            new BankError({ bank: "Bnz", reason: "AccountNotFound" }),
-        }),
-      ),
+      }),
   })
 }).pipe(
   Effect.withConfigProvider(configProviderNested("bnz")),
