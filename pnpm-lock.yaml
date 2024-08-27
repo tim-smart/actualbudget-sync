@@ -62,6 +62,7 @@ importers:
       typescript:
         specifier: ^5.5.4
         version: 5.5.4
+    publishDirectory: dist
 
 packages:
 
