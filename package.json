@@ -2,7 +2,7 @@
   "name": "@tim-smart/actualbudget-sync",
   "version": "0.0.0",
   "type": "module",
-  "description": "",
+  "description": "Effect library for syncing banks with Actual Budget",
   "publishConfig": {
     "access": "public",
     "directory": "dist"
@@ -23,7 +23,7 @@
     "changeset-publish": "pnpm build && changeset publish"
   },
   "keywords": [],
-  "author": "",
+  "author": "Tim Smart <hello@timsmart.co>",
   "license": "MIT",
   "devDependencies": {
     "@actual-app/api": "^6.9.0",
