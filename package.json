@@ -1,6 +1,6 @@
 {
   "name": "@tim-smart/actualbudget-sync",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "Effect library for syncing banks with Actual Budget",
   "publishConfig": {
