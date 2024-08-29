@@ -1,5 +1,11 @@
 # @tim-smart/actualbudget-sync
 
+## 0.1.3
+
+### Patch Changes
+
+- [`a1a01e0`](https://github.com/tim-smart/actualbudget-sync/commit/a1a01e0cd09b7de782bc45ad508b7e42e494ddbb) Thanks [@tim-smart](https://github.com/tim-smart)! - don't reimport removed transactions
+
 ## 0.1.2
 
 ### Patch Changes
