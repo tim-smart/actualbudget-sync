@@ -1,5 +1,11 @@
 # @tim-smart/actualbudget-sync
 
+## 0.1.2
+
+### Patch Changes
+
+- [`75a22f7`](https://github.com/tim-smart/actualbudget-sync/commit/75a22f77bc8f033b3b8b280593b6563980c19421) Thanks [@tim-smart](https://github.com/tim-smart)! - fix for imported_id
+
 ## 0.1.1
 
 ### Patch Changes
