@@ -1,5 +1,11 @@
 # @tim-smart/actualbudget-sync
 
+## 0.1.4
+
+### Patch Changes
+
+- [`19a4020`](https://github.com/tim-smart/actualbudget-sync/commit/19a4020d022b8b2e3b02ee7aa37d09cf4b4878b3) Thanks [@tim-smart](https://github.com/tim-smart)! - bnz: only add id for non-pending transactions
+
 ## 0.1.3
 
 ### Patch Changes
