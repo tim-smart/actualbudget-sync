@@ -26,7 +26,7 @@ export const run = (
           _.importTransactions(
             actualAccountId,
             transactions.map((t) => ({
-              id: t.id,
+              imported_id: t.id,
               date: DateTime.formatIsoDate(t.dateTime),
               payee_name: t.payee,
               amount: amountToInt(t.amount),
