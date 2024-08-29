@@ -124,8 +124,10 @@ export const BnzLive = Layer.effect(Bank, make).pipe(
 
 // helpers
 
+const isPending = (t: Transaction) => t.status.code !== "POSTED"
+
 const isPendingInternational = (transaction: Transaction) =>
-  transaction.status.code !== "POSTED" && transaction.value.currency !== "NZD"
+  isPending(transaction) && transaction.value.currency !== "NZD"
 
 const memo = ({ thisAccount: { details } }: Transaction): string =>
   [details.particulars, details.reference, details.code]
@@ -152,14 +154,17 @@ const date = flow(dateTime, DateTime.removeTime)
 const dateGreaterThan = (now: DateTime.DateTime) => (t: Transaction) =>
   DateTime.greaterThan(date(t), now)
 
+const id = (t: Transaction): string | undefined =>
+  isPending(t) ? undefined : t.id
+
 const convert = (transaction: Transaction): AccountTransaction => {
   return {
-    id: transaction.id,
+    id: id(transaction),
     dateTime: dateTime(transaction),
     payee: payee(transaction),
     amount: amount(transaction),
     notes: memo(transaction),
-    cleared: transaction.status.code === "POSTED",
+    cleared: !isPending(transaction),
   }
 }
 
