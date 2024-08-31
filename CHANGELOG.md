@@ -1,5 +1,11 @@
 # @tim-smart/actualbudget-sync
 
+## 0.1.5
+
+### Patch Changes
+
+- [`32d0c2e`](https://github.com/tim-smart/actualbudget-sync/commit/32d0c2ebd4a9711fe6cdb4ec4859e144d69ee6ea) Thanks [@tim-smart](https://github.com/tim-smart)! - generate import ids in the Sync service
+
 ## 0.1.4
 
 ### Patch Changes
