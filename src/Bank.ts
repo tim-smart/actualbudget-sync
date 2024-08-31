@@ -29,4 +29,5 @@ export interface AccountTransaction {
 export const AccountTransactionOrder = Order.struct({
   dateTime: DateTime.Order,
   amount: BigDecimal.Order,
+  payee: Order.string,
 })
