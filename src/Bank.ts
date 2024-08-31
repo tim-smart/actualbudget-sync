@@ -1,7 +1,7 @@
 /**
  * @since 1.0.0
  */
-import { BigDecimal, Context, Data, DateTime, Effect } from "effect"
+import { BigDecimal, Context, Data, DateTime, Effect, Order } from "effect"
 
 export class BankError extends Data.TaggedError("BankError")<{
   readonly reason: "AccountNotFound" | "Unauthorized" | "Unknown"
@@ -19,10 +19,14 @@ export class Bank extends Context.Tag("Bank")<
 >() {}
 
 export interface AccountTransaction {
-  readonly id?: string
   readonly dateTime: DateTime.DateTime
   readonly amount: BigDecimal.BigDecimal
   readonly payee: string
   readonly notes?: string
   readonly cleared?: boolean
 }
+
+export const AccountTransactionOrder = Order.struct({
+  dateTime: DateTime.Order,
+  amount: BigDecimal.Order,
+})

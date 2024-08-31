@@ -154,19 +154,13 @@ const date = flow(dateTime, DateTime.removeTime)
 const dateGreaterThan = (now: DateTime.DateTime) => (t: Transaction) =>
   DateTime.greaterThan(date(t), now)
 
-const id = (t: Transaction): string | undefined =>
-  isPending(t) ? undefined : t.id
-
-const convert = (transaction: Transaction): AccountTransaction => {
-  return {
-    id: id(transaction),
-    dateTime: dateTime(transaction),
-    payee: payee(transaction),
-    amount: amount(transaction),
-    notes: memo(transaction),
-    cleared: !isPending(transaction),
-  }
-}
+const convert = (transaction: Transaction): AccountTransaction => ({
+  dateTime: dateTime(transaction),
+  payee: payee(transaction),
+  amount: amount(transaction),
+  notes: memo(transaction),
+  cleared: !isPending(transaction),
+})
 
 // types
 
