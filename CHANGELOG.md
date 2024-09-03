@@ -1,5 +1,11 @@
 # @tim-smart/actualbudget-sync
 
+## 0.1.6
+
+### Patch Changes
+
+- [`e3237fc`](https://github.com/tim-smart/actualbudget-sync/commit/e3237fc97d7882723868d055c3cb20ee05aefd2d) Thanks [@tim-smart](https://github.com/tim-smart)! - add payee to transaction Order
+
 ## 0.1.5
 
 ### Patch Changes
