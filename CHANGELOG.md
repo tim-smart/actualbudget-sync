@@ -1,5 +1,11 @@
 # @tim-smart/actualbudget-sync
 
+## 0.2.0
+
+### Minor Changes
+
+- [`e038e83`](https://github.com/tim-smart/actualbudget-sync/commit/e038e83491d7b9b33b1b182550949d1ae503cc57) Thanks [@tim-smart](https://github.com/tim-smart)! - move to cli
+
 ## 0.1.6
 
 ### Patch Changes
