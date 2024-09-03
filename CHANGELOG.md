@@ -1,5 +1,11 @@
 # @tim-smart/actualbudget-sync
 
+## 0.2.1
+
+### Patch Changes
+
+- [`b6b30c4`](https://github.com/tim-smart/actualbudget-sync/commit/b6b30c4935b1b744a1bc67c524bbce3643ec0ba6) Thanks [@tim-smart](https://github.com/tim-smart)! - make code in meta optional
+
 ## 0.2.0
 
 ### Minor Changes
