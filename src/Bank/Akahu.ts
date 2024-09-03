@@ -34,6 +34,7 @@ export const AkahuLive = Effect.gen(function* () {
         HttpClientRequest.acceptJson,
       ),
     ),
+    HttpClient.filterStatusOk,
     HttpClient.retry({
       while: (err) =>
         err._tag === "ResponseError" && err.response.status >= 429,
@@ -68,7 +69,7 @@ export const AkahuLive = Effect.gen(function* () {
     }
   }
 
-  const refresh = client.get("/refresh").pipe(Effect.asVoid, Effect.scoped)
+  const refresh = client.post("/refresh").pipe(Effect.asVoid, Effect.scoped)
 
   const pendingTransactions = stream(PendingTransaction)
   const transactions = stream(Transaction)
