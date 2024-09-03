@@ -1,5 +1,4 @@
 import { Command, Options } from "@effect/cli"
-import { BnzLive } from "./Bank/Bnz.js"
 import { Effect, Layer, Struct } from "effect"
 import { NodeContext, NodeRuntime } from "@effect/platform-node"
 import * as Sync from "./Sync.js"
@@ -8,7 +7,6 @@ import { AkahuLive } from "./Bank/Akahu.js"
 
 const banks = {
   akahu: AkahuLive,
-  bnz: BnzLive,
 } as const
 
 const bank = Options.choice("bank", Struct.keys(banks)).pipe(

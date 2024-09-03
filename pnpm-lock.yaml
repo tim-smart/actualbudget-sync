@@ -7,10 +7,11 @@ settings:
 importers:
 
   .:
-    devDependencies:
+    dependencies:
       '@actual-app/api':
         specifier: ^6.9.0
         version: 6.9.0
+    devDependencies:
       '@changesets/changelog-github':
         specifier: ^0.5.0
         version: 0.5.0
@@ -41,9 +42,6 @@ importers:
       glob:
         specifier: ^11.0.0
         version: 11.0.0
-      playwright:
-        specifier: ^1.46.1
-        version: 1.46.1
       prettier:
         specifier: ^3.3.3
         version: 3.3.3
@@ -825,11 +823,6 @@ packages:
     resolution: {integrity: sha512-yhlQgA6mnOJUKOsRUFsgJdQCvkKhcz8tlZG5HBQfReYZy46OwLcY+Zia0mtdHsOo9y/hP+CxMN0TU9QxoOtG4g==}
     engines: {node: '>=6 <7 || >=8'}
 
-  fsevents@2.3.2:
-    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
-    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
-    os: [darwin]
-
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
@@ -1172,16 +1165,6 @@ packages:
   pkg-dir@4.2.0:
     resolution: {integrity: sha512-HRDzbaKjC+AOWVXxAU/x54COGeIv9eb+6CkDSQoNTt4XyWoIJvuPsXizxu/Fr23EiekbtZwmh1IcIG/l/a10GQ==}
     engines: {node: '>=8'}
-
-  playwright-core@1.46.1:
-    resolution: {integrity: sha512-h9LqIQaAv+CYvWzsZ+h3RsrqCStkBHlgo6/TJlFst3cOTlLghBQlJwPOZKQJTKNaD3QIB7aAVQ+gfWbN3NXB7A==}
-    engines: {node: '>=18'}
-    hasBin: true
-
-  playwright@1.46.1:
-    resolution: {integrity: sha512-oPcr1yqoXLCkgKtD5eNUPLiN40rYEM39odNpIb6VE6S7/15gJmA1NzVv6zJYusV0e7tzvkU/utBFNa/Kpxmwng==}
-    engines: {node: '>=18'}
-    hasBin: true
 
   postcss-load-config@6.0.1:
     resolution: {integrity: sha512-oPtTM4oerL+UXmx+93ytZVN82RrlY/wPUV8IeDxFrzIjXOLF1pN+EmKPLbubvKHT2HC20xXsCAH2Z+CKV6Oz/g==}
@@ -2313,9 +2296,6 @@ snapshots:
       jsonfile: 4.0.0
       universalify: 0.1.2
 
-  fsevents@2.3.2:
-    optional: true
-
   fsevents@2.3.3:
     optional: true
 
@@ -2599,14 +2579,6 @@ snapshots:
   pkg-dir@4.2.0:
     dependencies:
       find-up: 4.1.0
-
-  playwright-core@1.46.1: {}
-
-  playwright@1.46.1:
-    dependencies:
-      playwright-core: 1.46.1
-    optionalDependencies:
-      fsevents: 2.3.2
 
   postcss-load-config@6.0.1(tsx@4.19.0)(yaml@2.5.0):
     dependencies:

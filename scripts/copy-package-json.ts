@@ -11,7 +11,7 @@ const read = pipe(
     name: json.name,
     version: json.version,
     description: json.description,
-    bin: "main.cjs",
+    bin: "main.js",
     repository: json.repository,
     author: json.author,
     license: json.license,
