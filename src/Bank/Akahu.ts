@@ -112,8 +112,8 @@ export const AkahuLive = Effect.gen(function* () {
 )
 
 export class Meta extends S.Class<Meta>("Meta")({
-  particulars: S.optional(S.Union(S.Null, S.String)),
-  code: S.String,
+  particulars: S.optional(S.String),
+  code: S.optional(S.String),
   logo: S.optional(S.String),
   other_account: S.optional(S.String),
   reference: S.optional(S.String),
