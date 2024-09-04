@@ -79,8 +79,6 @@ export const AkahuLive = Effect.gen(function* () {
       const now = yield* DateTime.now
       const start = now.pipe(DateTime.subtract({ days: 30 }))
 
-      yield* refresh
-
       const last30Days = yield* pendingTransactions(
         HttpClientRequest.get(`/accounts/${accountId}/transactions/pending`, {
           urlParams: { start: DateTime.formatIso(start) },
@@ -100,6 +98,8 @@ export const AkahuLive = Effect.gen(function* () {
         Chunk.toReadonlyArray,
       )
     })
+
+  yield* refresh
 
   return Bank.of({
     exportAccount(accountId) {
