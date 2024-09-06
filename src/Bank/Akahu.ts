@@ -82,20 +82,19 @@ export const AkahuLive = Effect.gen(function* () {
 
   const now = yield* DateTime.now
   const oneHourAgo = now.pipe(DateTime.subtract({ hours: 1 }))
+  const lastMonth = now.pipe(DateTime.subtract({ days: 30 }))
 
   const accountTransactions = (accountId: string) =>
     Effect.gen(function* () {
-      const start = now.pipe(DateTime.subtract({ days: 30 }))
-
       const last30Days = yield* pendingTransactions(
         HttpClientRequest.get(`/accounts/${accountId}/transactions/pending`, {
-          urlParams: { start: DateTime.formatIso(start) },
+          urlParams: { start: DateTime.formatIso(lastMonth) },
         }),
       ).pipe(
         Stream.merge(
           transactions(
             HttpClientRequest.get(`/accounts/${accountId}/transactions`, {
-              urlParams: { start: DateTime.formatIso(start) },
+              urlParams: { start: DateTime.formatIso(lastMonth) },
             }),
           ),
         ),
