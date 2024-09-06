@@ -20,7 +20,7 @@ import {
 } from "@effect/platform"
 import { NodeHttpClient } from "@effect/platform-node"
 import * as S from "@effect/schema/Schema"
-import { AccountTransaction, Bank } from "../Bank.js"
+import { AccountTransaction, Bank, BankError } from "../Bank.js"
 
 export const AkahuLive = Effect.gen(function* () {
   const appToken = yield* Config.redacted("appToken")
@@ -70,13 +70,21 @@ export const AkahuLive = Effect.gen(function* () {
   }
 
   const refresh = client.post("/refresh").pipe(Effect.asVoid, Effect.scoped)
-
+  const accounts = stream(Account)(HttpClientRequest.get("/accounts"))
   const pendingTransactions = stream(PendingTransaction)
   const transactions = stream(Transaction)
+  const lastRefreshed = accounts.pipe(
+    Stream.map((account) => account.refreshed.transactions),
+    Stream.runHead,
+    Effect.flatten,
+    Effect.orDie,
+  )
+
+  const now = yield* DateTime.now
+  const oneHourAgo = now.pipe(DateTime.subtract({ hours: 1 }))
 
   const accountTransactions = (accountId: string) =>
     Effect.gen(function* () {
-      const now = yield* DateTime.now
       const start = now.pipe(DateTime.subtract({ days: 30 }))
 
       const last30Days = yield* pendingTransactions(
@@ -100,6 +108,21 @@ export const AkahuLive = Effect.gen(function* () {
     })
 
   yield* refresh
+  yield* lastRefreshed.pipe(
+    Effect.flatMap((refreshed) =>
+      DateTime.greaterThan(refreshed, oneHourAgo)
+        ? Effect.void
+        : new BankError({
+            reason: "Unknown",
+            bank: "Akahu",
+            cause: new Error("Last refresh was more than an hour ago"),
+          }),
+    ),
+    Effect.retry({
+      times: 5,
+      schedule: Schedule.exponential(500),
+    }),
+  )
 
   return Bank.of({
     exportAccount(accountId) {
@@ -201,6 +224,22 @@ export class PendingTransaction extends S.Class<PendingTransaction>(
     }
   }
 }
+
+export class Refreshed extends S.Class<Refreshed>("Refreshed")({
+  balance: S.DateTimeUtc,
+  meta: S.DateTimeUtc,
+  transactions: S.DateTimeUtc,
+  party: S.DateTimeUtc,
+}) {}
+
+export class Account extends S.Class<Account>("AccountElement")({
+  _id: AccountId,
+  name: S.String,
+  status: S.String,
+  type: S.String,
+  attributes: S.Array(S.String),
+  refreshed: Refreshed,
+}) {}
 
 export const PaginatedResponse = <S extends S.Schema.Any>(schema: S) =>
   S.Struct({
