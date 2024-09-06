@@ -33,7 +33,7 @@
     "@effect/platform-node": "https://pkg.pr.new/Effect-TS/effect/@effect/platform-node@45c5ade",
     "@effect/schema": "^0.72.2",
     "@types/node": "^22.5.4",
-    "effect": "^3.7.2",
+    "effect": "https://pkg.pr.new/Effect-TS/effect@45c5ade",
     "glob": "^11.0.0",
     "prettier": "^3.3.3",
     "rimraf": "^6.0.1",

@@ -6,6 +6,7 @@ import {
   flow,
   identity,
   Layer,
+  Logger,
   Option,
   pipe,
   Redacted,
@@ -80,12 +81,10 @@ export const AkahuLive = Effect.gen(function* () {
     Effect.orDie,
   )
 
-  const now = yield* DateTime.now
-  const oneHourAgo = now.pipe(DateTime.subtract({ hours: 1 }))
-  const lastMonth = now.pipe(DateTime.subtract({ days: 30 }))
-
   const accountTransactions = (accountId: string) =>
     Effect.gen(function* () {
+      const now = yield* DateTime.now
+      const lastMonth = now.pipe(DateTime.subtract({ days: 30 }))
       const last30Days = yield* pendingTransactions(
         HttpClientRequest.get(`/accounts/${accountId}/transactions/pending`, {
           urlParams: { start: DateTime.formatIso(lastMonth) },
@@ -106,21 +105,24 @@ export const AkahuLive = Effect.gen(function* () {
       )
     })
 
+  yield* Effect.log("Refreshing Akahu transactions")
+  const beforeRefresh = yield* lastRefreshed
   yield* refresh
   yield* lastRefreshed.pipe(
     Effect.flatMap((refreshed) =>
-      DateTime.greaterThan(refreshed, oneHourAgo)
+      DateTime.greaterThan(refreshed, beforeRefresh)
         ? Effect.void
         : new BankError({
             reason: "Unknown",
             bank: "Akahu",
-            cause: new Error("Last refresh was more than an hour ago"),
+            cause: new Error("Refresh did not update transactions"),
           }),
     ),
     Effect.retry({
       times: 5,
       schedule: Schedule.exponential(500),
     }),
+    Effect.tapErrorCause(Effect.log),
   )
 
   return Bank.of({
