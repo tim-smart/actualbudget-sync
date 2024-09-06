@@ -6,7 +6,6 @@ import {
   flow,
   identity,
   Layer,
-  Logger,
   Option,
   pipe,
   Redacted,
@@ -105,10 +104,9 @@ export const AkahuLive = Effect.gen(function* () {
       )
     })
 
-  yield* Effect.log("Refreshing Akahu transactions")
   const beforeRefresh = yield* lastRefreshed
   yield* refresh
-  yield* lastRefreshed.pipe(
+  const fresh = yield* lastRefreshed.pipe(
     Effect.flatMap((refreshed) =>
       DateTime.greaterThan(refreshed, beforeRefresh)
         ? Effect.void
@@ -123,11 +121,15 @@ export const AkahuLive = Effect.gen(function* () {
       schedule: Schedule.exponential(500),
     }),
     Effect.tapErrorCause(Effect.log),
+    Effect.match({
+      onFailure: () => false,
+      onSuccess: () => true,
+    }),
   )
 
   return Bank.of({
     exportAccount(accountId) {
-      return accountTransactions(accountId)
+      return fresh ? accountTransactions(accountId) : Effect.succeed([])
     },
   })
 }).pipe(
