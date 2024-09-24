@@ -27,21 +27,22 @@
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.0",
     "@changesets/cli": "^2.27.8",
-    "@effect/cli": "^0.42.3",
+    "@effect/cli": "^0.45.1",
     "@effect/language-service": "^0.1.0",
-    "@effect/platform": "https://pkg.pr.new/Effect-TS/effect/@effect/platform@45c5ade",
-    "@effect/platform-node": "https://pkg.pr.new/Effect-TS/effect/@effect/platform-node@45c5ade",
-    "@effect/schema": "^0.72.2",
-    "@types/node": "^22.5.4",
-    "effect": "https://pkg.pr.new/Effect-TS/effect@45c5ade",
+    "@effect/platform": "^0.66.1",
+    "@effect/platform-node": "^0.61.1",
+    "@effect/schema": "^0.74.0",
+    "@types/node": "^22.6.1",
+    "effect": "^3.8.3",
     "glob": "^11.0.0",
     "prettier": "^3.3.3",
     "rimraf": "^6.0.1",
-    "tsup": "^8.2.4",
-    "tsx": "^4.19.0",
-    "typescript": "^5.5.4"
+    "tsup": "^8.3.0",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.2"
   },
   "dependencies": {
-    "@actual-app/api": "^6.10.0"
+    "@actual-app/api": "^6.10.0",
+    "playwright": "^1.47.2"
   }
 }
