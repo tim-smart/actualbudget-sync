@@ -104,6 +104,7 @@ export const AkahuLive = Effect.gen(function* () {
       )
     })
 
+  yield* Effect.log("Refreshing Akahu transactions")
   const beforeRefresh = yield* lastRefreshed
   yield* refresh
   const fresh = yield* lastRefreshed.pipe(
@@ -134,6 +135,7 @@ export const AkahuLive = Effect.gen(function* () {
   })
 }).pipe(
   Effect.withConfigProvider(configProviderNested("akahu")),
+  Effect.annotateLogs({ service: "Bank/Akahu" }),
   Layer.effect(Bank),
   Layer.provide(NodeHttpClient.layerUndici),
 )
