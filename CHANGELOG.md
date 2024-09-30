@@ -1,5 +1,15 @@
 # @tim-smart/actualbudget-sync
 
+## 0.2.2
+
+### Patch Changes
+
+- [`bf43de2`](https://github.com/tim-smart/actualbudget-sync/commit/bf43de233b12e7cd2e1e4f523172dac71175da72) Thanks [@tim-smart](https://github.com/tim-smart)! - wait for Akahu refresh to take effect
+
+- [`66d8991`](https://github.com/tim-smart/actualbudget-sync/commit/66d8991e474de7f499dd9a4396f027c1545c3472) Thanks [@tim-smart](https://github.com/tim-smart)! - fix Akahu refresh
+
+- [`c9e1977`](https://github.com/tim-smart/actualbudget-sync/commit/c9e197750cf83042d56346af39b2d90e6020442d) Thanks [@tim-smart](https://github.com/tim-smart)! - refresh Akahu during Layer construction
+
 ## 0.2.1
 
 ### Patch Changes
