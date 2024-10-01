@@ -1,5 +1,11 @@
 # @tim-smart/actualbudget-sync
 
+## 0.2.4
+
+### Patch Changes
+
+- [`e3257c5`](https://github.com/tim-smart/actualbudget-sync/commit/e3257c5811fb60acbe9b7a4328c5ffe3e8da2fad) Thanks [@tim-smart](https://github.com/tim-smart)! - sync Akahu even if refresh fails
+
 ## 0.2.3
 
 ### Patch Changes
