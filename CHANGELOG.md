@@ -1,5 +1,13 @@
 # @tim-smart/actualbudget-sync
 
+## 0.2.3
+
+### Patch Changes
+
+- [`fbe1b41`](https://github.com/tim-smart/actualbudget-sync/commit/fbe1b41303c0765e475e8ca2d166751588317bce) Thanks [@tim-smart](https://github.com/tim-smart)! - remove balance from schema
+
+- update dependencies
+
 ## 0.2.2
 
 ### Patch Changes
