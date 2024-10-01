@@ -186,7 +186,6 @@ export class Transaction extends S.Class<Transaction>("Transaction")({
   date: S.DateTimeUtc,
   description: S.String,
   amount: S.BigDecimalFromNumber,
-  balance: S.BigDecimalFromNumber,
   type: S.String,
   hash: S.String,
   meta: Meta,
@@ -231,7 +230,6 @@ export class PendingTransaction extends S.Class<PendingTransaction>(
 }
 
 export class Refreshed extends S.Class<Refreshed>("Refreshed")({
-  balance: S.DateTimeUtc,
   meta: S.DateTimeUtc,
   transactions: S.DateTimeUtc,
   party: S.DateTimeUtc,
