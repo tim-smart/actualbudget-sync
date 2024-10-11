@@ -28,7 +28,7 @@ const run = Command.make("actualsync", { bank, accounts }).pipe(
       })),
     ),
   ),
-  Command.provide(({ bank }) => Layer.mergeAll(banks[bank], Actual.Live)),
+  Command.provide(({ bank }) => Layer.mergeAll(banks[bank], Actual.Default)),
   Command.run({
     name: "actualsync",
     version: "0.0.1",

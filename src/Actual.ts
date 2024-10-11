@@ -1,7 +1,7 @@
 /**
  * @since 1.0.0
  */
-import { Array, Config, Context, Data, Effect, Layer, Redacted } from "effect"
+import { Array, Config, Data, Effect, Redacted } from "effect"
 import * as Api from "@actual-app/api"
 import { configProviderNested } from "./internal/utils.js"
 
@@ -11,60 +11,57 @@ export class ActualError extends Data.TaggedError("ActualError")<{
   readonly cause: unknown
 }> {}
 
-const make = Effect.gen(function* () {
-  const dataDir = yield* Config.string("data").pipe(Config.withDefault("data"))
-  const server = yield* Config.string("server")
-  const password = yield* Config.redacted("password")
-  const syncId = yield* Config.string("syncId")
+export class Actual extends Effect.Service<Actual>()("Actual", {
+  scoped: Effect.gen(function* () {
+    const dataDir = yield* Config.string("data").pipe(
+      Config.withDefault("data"),
+    )
+    const server = yield* Config.string("server")
+    const password = yield* Config.redacted("password")
+    const syncId = yield* Config.string("syncId")
 
-  const use = <A>(
-    f: (api: typeof Api) => Promise<A>,
-  ): Effect.Effect<A, ActualError> =>
-    Effect.tryPromise({
-      try: () => f(Api),
-      catch: (cause) => new ActualError({ cause }),
-    })
+    const use = <A>(
+      f: (api: typeof Api) => Promise<A>,
+    ): Effect.Effect<A, ActualError> =>
+      Effect.tryPromise({
+        try: () => f(Api),
+        catch: (cause) => new ActualError({ cause }),
+      })
 
-  yield* Effect.acquireRelease(
-    use((_) =>
-      _.init({
-        dataDir,
-        serverURL: server,
-        password: Redacted.value(password),
-      }),
-    ),
-    () => Effect.promise(() => Api.shutdown()),
-  )
-
-  const sync = Effect.promise(() => Api.sync())
-
-  yield* use((_) => _.downloadBudget(syncId))
-  yield* Effect.addFinalizer(() => sync)
-  yield* sync
-
-  const query = <A>(f: (q: (typeof Api)["q"]) => Query) =>
-    use(({ runQuery, q }) => runQuery(f(q))).pipe(
-      Effect.map((result: any) => result.data as ReadonlyArray<A>),
+    yield* Effect.acquireRelease(
+      use((_) =>
+        _.init({
+          dataDir,
+          serverURL: server,
+          password: Redacted.value(password),
+        }),
+      ),
+      () => Effect.promise(() => Api.shutdown()),
     )
 
-  const findImportedIds = (importedIds: ReadonlyArray<string>) =>
-    importedIds.length === 0
-      ? Effect.succeed([])
-      : query<{ imported_id: string }>((q) =>
-          q("transactions")
-            .select(["*"])
-            .filter({
-              $or: importedIds.map((imported_id) => ({ imported_id })),
-            })
-            .withDead(),
-        ).pipe(Effect.map(Array.map((row) => row.imported_id)))
+    const sync = Effect.promise(() => Api.sync())
 
-  return { use, query, findImportedIds } as const
-}).pipe(Effect.withConfigProvider(configProviderNested("actual")))
+    yield* use((_) => _.downloadBudget(syncId))
+    yield* Effect.addFinalizer(() => sync)
+    yield* sync
 
-export class Actual extends Context.Tag("Actual")<
-  Actual,
-  Effect.Effect.Success<typeof make>
->() {
-  static readonly Live = Layer.scoped(this, make)
-}
+    const query = <A>(f: (q: (typeof Api)["q"]) => Query) =>
+      use(({ runQuery, q }) => runQuery(f(q))).pipe(
+        Effect.map((result: any) => result.data as ReadonlyArray<A>),
+      )
+
+    const findImportedIds = (importedIds: ReadonlyArray<string>) =>
+      importedIds.length === 0
+        ? Effect.succeed([])
+        : query<{ imported_id: string }>((q) =>
+            q("transactions")
+              .select(["*"])
+              .filter({
+                $or: importedIds.map((imported_id) => ({ imported_id })),
+              })
+              .withDead(),
+          ).pipe(Effect.map(Array.map((row) => row.imported_id)))
+
+    return { use, query, findImportedIds } as const
+  }).pipe(Effect.withConfigProvider(configProviderNested("actual"))),
+}) {}

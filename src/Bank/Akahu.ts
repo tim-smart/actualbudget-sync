@@ -35,9 +35,7 @@ export const AkahuLive = Effect.gen(function* () {
       ),
     ),
     HttpClient.filterStatusOk,
-    HttpClient.retry({
-      while: (err) =>
-        err._tag === "ResponseError" && err.response.status >= 429,
+    HttpClient.retryTransient({
       schedule: Schedule.exponential(500),
       times: 5,
     }),
