@@ -98,7 +98,7 @@ export const UpBankLive = Effect.gen(function* () {
 
 class MoneyObject extends Schema.Class<MoneyObject>("MoneyObject")({
   valueInBaseUnits: Schema.BigDecimalFromNumber,
-}) {}
+}) { }
 
 class Transaction extends Schema.Class<Transaction>("Transaction")({
   type: Schema.Literal("transactions"),
@@ -108,6 +108,14 @@ class Transaction extends Schema.Class<Transaction>("Transaction")({
     amount: MoneyObject,
     createdAt: Schema.DateTimeZoned,
     note: Schema.NullOr(Schema.Struct({ text: Schema.String })),
+  }),
+  relationships: Schema.Struct({
+    category: Schema.Struct({
+      data: Schema.NullOr(Schema.Struct({
+        type: Schema.Literal("categories"),
+        id: Schema.String,
+      }))
+    })
   }),
 }) {
   accountTransaction(): AccountTransaction {
@@ -127,7 +135,7 @@ class Transaction extends Schema.Class<Transaction>("Transaction")({
 class Cursor extends Schema.Class<Cursor>("Cursor")({
   prev: Schema.NullOr(Schema.String),
   next: Schema.NullOr(Schema.String),
-}) {}
+}) { }
 
 const PaginatedResponse = <S extends Schema.Schema.Any>(schema: S) =>
   Schema.Struct({
