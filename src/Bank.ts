@@ -24,6 +24,7 @@ export interface AccountTransaction {
   readonly payee: string
   readonly notes?: string
   readonly cleared?: boolean
+  readonly category?: string
 }
 
 export const AccountTransactionOrder = Order.struct({

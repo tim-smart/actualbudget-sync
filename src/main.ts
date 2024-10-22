@@ -21,14 +21,22 @@ const accounts = Options.keyValueMap("accounts").pipe(
   ),
 )
 
-const run = Command.make("actualsync", { bank, accounts }).pipe(
-  Command.withHandler(({ accounts }) =>
-    Sync.run(
-      [...accounts].map(([actualAccountId, bankAccountId]) => ({
+const categorize = Options.boolean("categorize").pipe(
+  Options.withAlias("c"),
+  Options.withDescription(
+    "If the bank supports categorization, try to categorize transactions",
+  ),
+)
+
+const run = Command.make("actualsync", { bank, accounts, categorize }).pipe(
+  Command.withHandler(({ accounts, categorize }) =>
+    Sync.run({
+      accounts: [...accounts].map(([actualAccountId, bankAccountId]) => ({
         actualAccountId,
         bankAccountId,
       })),
-    ),
+      categorize,
+    }),
   ),
   Command.provide(({ bank }) => Layer.mergeAll(banks[bank], Actual.Default)),
   Command.run({

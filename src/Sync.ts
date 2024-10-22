@@ -9,45 +9,58 @@ const bigDecimal100 = BigDecimal.fromNumber(100)
 const amountToInt = (amount: BigDecimal.BigDecimal) =>
   amount.pipe(BigDecimal.multiply(bigDecimal100), BigDecimal.unsafeToNumber)
 
-export const run = (
-  accounts: ReadonlyArray<{
+export const run = (options: {
+  readonly accounts: ReadonlyArray<{
     readonly bankAccountId: string
     readonly actualAccountId: string
-  }>,
-) =>
+  }>
+  readonly categorize: boolean
+}) =>
   Effect.gen(function* () {
     const actual = yield* Actual
     const bank = yield* Bank
     const importId = makeImportId()
+    const categories = yield* actual.use((_) => _.getCategories())
 
-    yield* Effect.forEach(accounts, ({ bankAccountId, actualAccountId }) =>
-      Effect.gen(function* () {
-        const transactions = yield* bank.exportAccount(bankAccountId)
-        const ids: Array<string> = []
-        const forImport = pipe(
-          transactions,
-          Array.sort(AccountTransactionOrder),
-          Array.map((t) => {
-            const imported_id = importId(t)
-            ids.push(imported_id)
-            return {
-              imported_id,
-              date: DateTime.formatIsoDate(t.dateTime),
-              payee_name: t.payee,
-              amount: amountToInt(t.amount),
-              notes: t.notes,
-              cleared: t.cleared,
-            }
-          }),
-        )
-        const alreadyImported = yield* actual.findImportedIds(ids)
-        const filtered = forImport.filter(
-          (t) => !alreadyImported.includes(t.imported_id),
-        )
-        yield* actual.use((_) =>
-          _.importTransactions(actualAccountId, filtered),
-        )
-      }),
+    yield* Effect.forEach(
+      options.accounts,
+      ({ bankAccountId, actualAccountId }) =>
+        Effect.gen(function* () {
+          const transactions = yield* bank.exportAccount(bankAccountId)
+          const ids: Array<string> = []
+          const forImport = pipe(
+            transactions,
+            Array.sort(AccountTransactionOrder),
+            Array.map((transaction) => {
+              const imported_id = importId(transaction)
+              const category =
+                options.categorize && transaction.category
+                  ? categories.find(
+                      (c) =>
+                        c.name.toLowerCase() ===
+                        transaction.category!.toLowerCase(),
+                    )
+                  : undefined
+              ids.push(imported_id)
+              return {
+                imported_id,
+                date: DateTime.formatIsoDate(transaction.dateTime),
+                payee_name: transaction.payee,
+                amount: amountToInt(transaction.amount),
+                notes: transaction.notes,
+                cleared: transaction.cleared,
+                ...(category ? { category: category.id } : {}),
+              }
+            }),
+          )
+          const alreadyImported = yield* actual.findImportedIds(ids)
+          const filtered = forImport.filter(
+            (t) => !alreadyImported.includes(t.imported_id),
+          )
+          yield* actual.use((_) =>
+            _.importTransactions(actualAccountId, filtered),
+          )
+        }),
     )
   })
 
