@@ -11,6 +11,7 @@ import {
   pipe,
   Redacted,
   Schedule,
+  Schema,
   Stream,
 } from "effect"
 import { configProviderNested } from "../internal/utils.js"
@@ -20,12 +21,11 @@ import {
   HttpClientResponse,
 } from "@effect/platform"
 import { NodeHttpClient } from "@effect/platform-node"
-import * as S from "@effect/schema/Schema"
 import { AccountTransaction, Bank } from "../Bank.js"
 
 const URL = "https://api.up.com.au/api/v1"
 
-export const UpBank = Effect.gen(function* () {
+export const UpBankLive = Effect.gen(function* () {
   const userToken = yield* Config.redacted("userToken")
   const client = (yield* HttpClient.HttpClient).pipe(
     HttpClient.mapRequest(
@@ -43,7 +43,7 @@ export const UpBank = Effect.gen(function* () {
     HttpClient.transformResponse(Effect.orDie),
   )
 
-  const stream = <S extends S.Schema.Any>(schema: S) => {
+  const stream = <S extends Schema.Schema.Any>(schema: S) => {
     const Page = PaginatedResponse(schema)
     return (request: HttpClientRequest.HttpClientRequest) => {
       const getPage = (cursor: string | null) =>
@@ -75,7 +75,7 @@ export const UpBank = Effect.gen(function* () {
       const lastMonth = now.pipe(DateTime.subtract({ days: 30 }))
       const last30Days = yield* transactions(
         HttpClientRequest.get(`/accounts/${accountId}/transactions`, {
-          urlParams: { 'filter[since]': DateTime.formatIso(lastMonth) },
+          urlParams: { "filter[since]": DateTime.formatIso(lastMonth) },
         }),
       ).pipe(Stream.runCollect)
       return last30Days.pipe(
@@ -96,51 +96,27 @@ export const UpBank = Effect.gen(function* () {
   Layer.provide(NodeHttpClient.layerUndici),
 )
 
-class MoneyObject extends S.Class<MoneyObject>("MoneyObject")({
-  currencyCode: S.String,
-  value: S.String,
-  valueInBaseUnits: S.BigDecimalFromNumber
-}) { }
+class MoneyObject extends Schema.Class<MoneyObject>("MoneyObject")({
+  valueInBaseUnits: Schema.BigDecimalFromNumber,
+}) {}
 
-
-class Transaction extends S.Class<Transaction>("Transaction")({
-  type: S.Literal("transactions"),
-  id: S.String,
-  attributes: S.Struct({
-    status: S.Literal("HELD", "SETTLED"),
-    rawText: S.NullOr(S.String),
-    description: S.String,
-    message: S.NullOr(S.String),
-    isCategorizable: S.Boolean,
-    holdInfo: S.NullOr(S.Struct({
-      amount: MoneyObject,
-      foreignAmount: S.NullOr(MoneyObject)
-    })),
-    roundUp: S.NullOr(S.Struct({
-      amount: MoneyObject,
-      boostAmount: MoneyObject
-    })),
-    cashBack: S.NullishOr(S.Struct({
-      amount: MoneyObject,
-      description: S.String
-    })),
+class Transaction extends Schema.Class<Transaction>("Transaction")({
+  type: Schema.Literal("transactions"),
+  attributes: Schema.Struct({
+    status: Schema.Literal("HELD", "SETTLED"),
+    description: Schema.String,
     amount: MoneyObject,
-    foreignAmount: S.NullOr(MoneyObject),
-    cardPurchaseMethod: S.NullOr(S.Struct({
-      method: S.Literal("BAR_CODE", "OCR", "CARD_PIN", "CARD_DETAILS", "CARD_ON_FILE", "ECOMMERCE", "MAGNETIC_STRIPE", "CONTACTLESS"),
-      cardNumberSuffix: S.NullOr(S.String)
-    })),
-    settledAt: S.NullOr(S.DateTimeZoned),
-    createdAt: S.DateTimeZoned,
-    transactionType: S.NullOr(S.String),
-    note: S.NullOr(S.Struct({ text: S.String })),
-    performingCustomer: S.NullOr(S.Struct({ displayName: S.String })),
-  })
+    createdAt: Schema.DateTimeZoned,
+    note: Schema.NullOr(Schema.Struct({ text: Schema.String })),
+  }),
 }) {
   accountTransaction(): AccountTransaction {
     return {
       dateTime: this.attributes.createdAt,
-      amount: BigDecimal.unsafeDivide(this.attributes.amount.valueInBaseUnits, BigDecimal.fromNumber(100)),
+      amount: BigDecimal.unsafeDivide(
+        this.attributes.amount.valueInBaseUnits,
+        BigDecimal.fromNumber(100),
+      ),
       payee: this.attributes.description,
       notes: this.attributes.note?.text,
       cleared: this.attributes.status === "SETTLED",
@@ -148,13 +124,13 @@ class Transaction extends S.Class<Transaction>("Transaction")({
   }
 }
 
-class Cursor extends S.Class<Cursor>("Cursor")({
-  prev: S.NullOr(S.String),
-  next: S.NullOr(S.String),
-}) { }
+class Cursor extends Schema.Class<Cursor>("Cursor")({
+  prev: Schema.NullOr(Schema.String),
+  next: Schema.NullOr(Schema.String),
+}) {}
 
-const PaginatedResponse = <S extends S.Schema.Any>(schema: S) =>
-  S.Struct({
-    data: S.Chunk(schema),
+const PaginatedResponse = <S extends Schema.Schema.Any>(schema: S) =>
+  Schema.Struct({
+    data: Schema.Chunk(schema),
     links: Cursor,
   })
