@@ -10,6 +10,7 @@ import {
   pipe,
   Redacted,
   Schedule,
+  Schema,
   Stream,
 } from "effect"
 import { configProviderNested } from "../internal/utils.js"
@@ -19,7 +20,6 @@ import {
   HttpClientResponse,
 } from "@effect/platform"
 import { NodeHttpClient } from "@effect/platform-node"
-import * as S from "@effect/schema/Schema"
 import { AccountTransaction, Bank, BankError } from "../Bank.js"
 
 export const AkahuLive = Effect.gen(function* () {
@@ -43,7 +43,7 @@ export const AkahuLive = Effect.gen(function* () {
   )
   const timeZone = yield* DateTime.zoneMakeNamed("Pacific/Auckland")
 
-  const stream = <S extends S.Schema.Any>(schema: S) => {
+  const stream = <S extends Schema.Schema.Any>(schema: S) => {
     const Page = PaginatedResponse(schema)
     return (request: HttpClientRequest.HttpClientRequest) => {
       const getPage = (cursor: string | null) =>
@@ -135,57 +135,28 @@ export const AkahuLive = Effect.gen(function* () {
   Layer.provide(NodeHttpClient.layerUndici),
 )
 
-export class Meta extends S.Class<Meta>("Meta")({
-  particulars: S.optional(S.String),
-  code: S.optional(S.String),
-  logo: S.optional(S.String),
-  other_account: S.optional(S.String),
-  reference: S.optional(S.String),
+export class Merchant extends Schema.Class<Merchant>("Merchant")({
+  name: Schema.String,
 }) {}
 
-export class Merchant extends S.Class<Merchant>("Merchant")({
-  _id: S.String,
-  name: S.String,
-  website: S.optional(S.String),
-  nzbn: S.optional(S.String),
+export class Category extends Schema.Class<Category>("Category")({
+  _id: Schema.String,
+  name: Schema.String,
 }) {}
 
-export class PersonalFinance extends S.Class<PersonalFinance>(
-  "PersonalFinance",
-)({
-  _id: S.String,
-  name: S.String,
-}) {}
+export const ConnectionId = Schema.String.pipe(Schema.brand("ConnectionId"))
+export const AccountId = Schema.String.pipe(Schema.brand("AccountId"))
+export const UserId = Schema.String.pipe(Schema.brand("UserId"))
 
-export class Groups extends S.Class<Groups>("Groups")({
-  personal_finance: PersonalFinance,
-}) {}
-
-export class Category extends S.Class<Category>("Category")({
-  _id: S.String,
-  name: S.String,
-  groups: Groups,
-}) {}
-
-export const ConnectionId = S.String.pipe(S.brand("ConnectionId"))
-export const AccountId = S.String.pipe(S.brand("AccountId"))
-export const UserId = S.String.pipe(S.brand("UserId"))
-
-export class Transaction extends S.Class<Transaction>("Transaction")({
-  _id: S.String,
+export class Transaction extends Schema.Class<Transaction>("Transaction")({
+  _id: Schema.String,
   _account: AccountId,
   _user: UserId,
   _connection: ConnectionId,
-  created_at: S.DateTimeUtc,
-  updated_at: S.DateTimeUtc,
-  date: S.DateTimeUtc,
-  description: S.String,
-  amount: S.BigDecimalFromNumber,
-  type: S.String,
-  hash: S.String,
-  meta: Meta,
-  merchant: S.optional(Merchant),
-  category: S.optional(Category),
+  date: Schema.DateTimeUtc,
+  description: Schema.String,
+  amount: Schema.BigDecimalFromNumber,
+  merchant: Schema.optional(Merchant),
 }) {
   accountTransaction(timeZone: DateTime.TimeZone): AccountTransaction {
     return {
@@ -198,21 +169,19 @@ export class Transaction extends S.Class<Transaction>("Transaction")({
   }
 }
 
-export class Cursor extends S.Class<Cursor>("Cursor")({
-  next: S.NullOr(S.String),
+export class Cursor extends Schema.Class<Cursor>("Cursor")({
+  next: Schema.NullOr(Schema.String),
 }) {}
 
-export class PendingTransaction extends S.Class<PendingTransaction>(
+export class PendingTransaction extends Schema.Class<PendingTransaction>(
   "PendingTransaction",
 )({
   _user: UserId,
   _account: AccountId,
   _connection: ConnectionId,
-  date: S.DateTimeUtc,
-  description: S.String,
-  amount: S.BigDecimal,
-  type: S.String,
-  updated_at: S.DateTimeUtc,
+  date: Schema.DateTimeUtc,
+  description: Schema.String,
+  amount: Schema.BigDecimal,
 }) {
   accountTransaction(timeZone: DateTime.TimeZone): AccountTransaction {
     return {
@@ -224,24 +193,21 @@ export class PendingTransaction extends S.Class<PendingTransaction>(
   }
 }
 
-export class Refreshed extends S.Class<Refreshed>("Refreshed")({
-  meta: S.DateTimeUtc,
-  transactions: S.DateTimeUtc,
-  party: S.DateTimeUtc,
+export class Refreshed extends Schema.Class<Refreshed>("Refreshed")({
+  meta: Schema.DateTimeUtc,
+  transactions: Schema.DateTimeUtc,
+  party: Schema.DateTimeUtc,
 }) {}
 
-export class Account extends S.Class<Account>("AccountElement")({
+export class Account extends Schema.Class<Account>("AccountElement")({
   _id: AccountId,
-  name: S.String,
-  status: S.String,
-  type: S.String,
-  attributes: S.Array(S.String),
+  name: Schema.String,
   refreshed: Refreshed,
 }) {}
 
-export const PaginatedResponse = <S extends S.Schema.Any>(schema: S) =>
-  S.Struct({
-    success: S.Boolean,
-    items: S.Chunk(schema),
-    cursor: S.optional(Cursor),
+export const PaginatedResponse = <S extends Schema.Schema.Any>(schema: S) =>
+  Schema.Struct({
+    success: Schema.Boolean,
+    items: Schema.Chunk(schema),
+    cursor: Schema.optional(Cursor),
   })
