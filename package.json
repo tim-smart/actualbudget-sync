@@ -12,6 +12,7 @@
     "type": "git"
   },
   "scripts": {
+    "test": "vitest",
     "codegen": "build-utils prepare-v2",
     "clean": "rimraf rm -rf dist/*",
     "build": "tsup && pnpm copy-package-json",
