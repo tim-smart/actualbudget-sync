@@ -15,12 +15,17 @@ export const run = (options: {
     readonly actualAccountId: string
   }>
   readonly categorize: boolean
+  readonly categoryMapping?: ReadonlyArray<{
+    readonly bankCategory: string
+    readonly actualCategory: string
+  }>
 }) =>
   Effect.gen(function* () {
     const actual = yield* Actual
     const bank = yield* Bank
     const importId = makeImportId()
     const categories = yield* actual.use((_) => _.getCategories())
+    const payees = yield* actual.use((_) => _.getPayees())
 
     yield* Effect.forEach(
       options.accounts,
@@ -33,23 +38,28 @@ export const run = (options: {
             Array.sort(AccountTransactionOrder),
             Array.map((transaction) => {
               const imported_id = importId(transaction)
-              const category =
-                options.categorize && transaction.category
-                  ? categories.find(
-                      (c) =>
-                        c.name.toLowerCase() ===
-                        transaction.category!.toLowerCase(),
-                    )
-                  : undefined
               ids.push(imported_id)
+
+              const transferAccountId = () => {
+                const transferToAccount = options.accounts.find(({ bankAccountId }) => bankAccountId === transaction.transfer)?.actualAccountId
+                return payees.find((it) => it.transfer_acct === transferToAccount)?.id
+              }
+
+              const category = () => {
+                const categoryName = options.categoryMapping?.find((mapping) => mapping.bankCategory === transaction.category)?.actualCategory ?? transaction.category
+                const category = categories.find((c) => c.name.toLowerCase() === categoryName?.toLowerCase())
+                return category ? { category: category.id } : undefined
+              }
+
               return {
                 imported_id,
                 date: DateTime.formatIsoDate(transaction.dateTime),
+                payee: transaction.transfer && transferAccountId(),
                 payee_name: transaction.payee,
                 amount: amountToInt(transaction.amount),
                 notes: transaction.notes,
                 cleared: transaction.cleared,
-                ...(category ? { category: category.id } : {}),
+                ...(options.categorize && category()),
               }
             }),
           )

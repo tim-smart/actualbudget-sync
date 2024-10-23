@@ -7,7 +7,7 @@ export class BankError extends Data.TaggedError("BankError")<{
   readonly reason: "AccountNotFound" | "Unauthorized" | "Unknown"
   readonly bank: string
   readonly cause?: unknown
-}> {}
+}> { }
 
 export class Bank extends Context.Tag("Bank")<
   Bank,
@@ -16,7 +16,7 @@ export class Bank extends Context.Tag("Bank")<
       accountId: string,
     ) => Effect.Effect<ReadonlyArray<AccountTransaction>, BankError>
   }
->() {}
+>() { }
 
 export interface AccountTransaction {
   readonly dateTime: DateTime.DateTime
@@ -25,6 +25,7 @@ export interface AccountTransaction {
   readonly notes?: string
   readonly cleared?: boolean
   readonly category?: string
+  readonly transfer?: string
 }
 
 export const AccountTransactionOrder = Order.struct({
