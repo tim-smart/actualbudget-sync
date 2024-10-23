@@ -1,5 +1,5 @@
 import { Command, Options } from "@effect/cli"
-import { Effect, Layer, Struct } from "effect"
+import { Effect, Layer, Struct, Option } from "effect"
 import { NodeContext, NodeRuntime } from "@effect/platform-node"
 import * as Sync from "./Sync.js"
 import { Actual } from "./Actual.js"
@@ -28,14 +28,24 @@ const categorize = Options.boolean("categorize").pipe(
   ),
 )
 
-const run = Command.make("actualsync", { bank, accounts, categorize }).pipe(
-  Command.withHandler(({ accounts, categorize }) =>
+const categories = Options.keyValueMap("categories").pipe(
+  Options.optional,
+  Options.withDescription(
+    "Requires --categorize to have any effect. Maps the banks values to actual values with the format 'bank-category=actual-category'",
+  ),
+)
+
+const run = Command.make("actualsync", { bank, accounts, categorize, categories }).pipe(
+  Command.withHandler(({ accounts, categorize, categories }) =>
     Sync.run({
       accounts: [...accounts].map(([actualAccountId, bankAccountId]) => ({
         actualAccountId,
         bankAccountId,
       })),
       categorize,
+      categoryMapping: Option.getOrUndefined(
+        Option.map(categories,
+          (categoriesOption) => [...categoriesOption].map(([bankCategory, actualCategory]) => ({ bankCategory, actualCategory }))))
     }),
   ),
   Command.provide(({ bank }) => Layer.mergeAll(banks[bank], Actual.Default)),

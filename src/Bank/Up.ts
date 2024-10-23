@@ -115,6 +115,12 @@ class Transaction extends Schema.Class<Transaction>("Transaction")({
         type: Schema.Literal("categories"),
         id: Schema.String,
       }))
+    }),
+    transferAccount: Schema.Struct({
+      data: Schema.NullOr(Schema.Struct({
+        type: Schema.Literal("accounts"),
+        id: Schema.String,
+      }))
     })
   }),
 }) {
@@ -128,6 +134,8 @@ class Transaction extends Schema.Class<Transaction>("Transaction")({
       payee: this.attributes.description,
       notes: this.attributes.note?.text,
       cleared: this.attributes.status === "SETTLED",
+      category: this.relationships.category.data?.id,
+      transfer: this.relationships.transferAccount.data?.id
     }
   }
 }
