@@ -35,7 +35,12 @@ const categories = Options.keyValueMap("categories").pipe(
   ),
 )
 
-const run = Command.make("actualsync", { bank, accounts, categorize, categories }).pipe(
+const run = Command.make("actualsync", {
+  bank,
+  accounts,
+  categorize,
+  categories,
+}).pipe(
   Command.withHandler(({ accounts, categorize, categories }) =>
     Sync.run({
       accounts: [...accounts].map(([actualAccountId, bankAccountId]) => ({
@@ -44,8 +49,13 @@ const run = Command.make("actualsync", { bank, accounts, categorize, categories 
       })),
       categorize,
       categoryMapping: Option.getOrUndefined(
-        Option.map(categories,
-          (categoriesOption) => [...categoriesOption].map(([bankCategory, actualCategory]) => ({ bankCategory, actualCategory }))))
+        Option.map(categories, (categoriesOption) =>
+          [...categoriesOption].map(([bankCategory, actualCategory]) => ({
+            bankCategory,
+            actualCategory,
+          })),
+        ),
+      ),
     }),
   ),
   Command.provide(({ bank }) => Layer.mergeAll(banks[bank], Actual.Default)),
