@@ -21,6 +21,7 @@ jobs:
           fetch-depth: 0
       - name: Install dependencies
         uses: ./.github/actions/setup
+      - run: pnpm test
       - run: pnpm build
       - name: Create Release Pull Request or Publish
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'

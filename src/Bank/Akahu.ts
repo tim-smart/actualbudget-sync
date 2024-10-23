@@ -22,91 +22,99 @@ import {
 import { NodeHttpClient } from "@effect/platform-node"
 import { AccountTransaction, Bank, BankError } from "../Bank.js"
 
-export const AkahuLive = Effect.gen(function* () {
-  const appToken = yield* Config.redacted("appToken")
-  const userToken = yield* Config.redacted("userToken")
-  const client = (yield* HttpClient.HttpClient).pipe(
-    HttpClient.mapRequest(
-      flow(
-        HttpClientRequest.prependUrl("https://api.akahu.io/v1"),
-        HttpClientRequest.setHeader("X-Akahu-Id", Redacted.value(appToken)),
-        HttpClientRequest.bearerToken(Redacted.value(userToken)),
-        HttpClientRequest.acceptJson,
+export class Akahu extends Effect.Service<Akahu>()("Bank/Akahu", {
+  effect: Effect.gen(function* () {
+    const appToken = yield* Config.redacted("appToken")
+    const userToken = yield* Config.redacted("userToken")
+    const client = (yield* HttpClient.HttpClient).pipe(
+      HttpClient.mapRequest(
+        flow(
+          HttpClientRequest.prependUrl("https://api.akahu.io/v1"),
+          HttpClientRequest.setHeader("X-Akahu-Id", Redacted.value(appToken)),
+          HttpClientRequest.bearerToken(Redacted.value(userToken)),
+          HttpClientRequest.acceptJson,
+        ),
       ),
-    ),
-    HttpClient.filterStatusOk,
-    HttpClient.retryTransient({
-      schedule: Schedule.exponential(500),
-      times: 5,
-    }),
-    HttpClient.transformResponse(Effect.orDie),
-  )
+      HttpClient.filterStatusOk,
+      HttpClient.retryTransient({
+        schedule: Schedule.exponential(500),
+        times: 5,
+      }),
+      HttpClient.transformResponse(Effect.orDie),
+    )
+
+    const stream = <S extends Schema.Schema.Any>(schema: S) => {
+      const Page = PaginatedResponse(schema)
+      return (request: HttpClientRequest.HttpClientRequest) => {
+        const getPage = (cursor: string | null) =>
+          pipe(
+            request,
+            cursor ? HttpClientRequest.setUrlParam("cursor", cursor) : identity,
+            client.execute,
+            Effect.flatMap(HttpClientResponse.schemaBodyJson(Page)),
+            Effect.scoped,
+            Effect.orDie,
+          )
+
+        return Stream.paginateChunkEffect(null, (cursor: string | null) =>
+          getPage(cursor).pipe(
+            Effect.map(
+              ({ items, cursor }) =>
+                [items, Option.fromNullable(cursor?.next)] as const,
+            ),
+          ),
+        )
+      }
+    }
+
+    const refresh = client.post("/refresh").pipe(Effect.asVoid, Effect.scoped)
+    const accounts = stream(Account)(HttpClientRequest.get("/accounts"))
+    const pendingTransactions = stream(PendingTransaction)
+    const transactions = stream(Transaction)
+    const lastRefreshed = accounts.pipe(
+      Stream.map((account) => account.refreshed.transactions),
+      Stream.runHead,
+      Effect.flatten,
+      Effect.orDie,
+    )
+
+    const accountTransactions = (accountId: string) =>
+      Effect.gen(function* () {
+        const now = yield* DateTime.now
+        const lastMonth = now.pipe(DateTime.subtract({ days: 30 }))
+        return pendingTransactions(
+          HttpClientRequest.get(`/accounts/${accountId}/transactions/pending`, {
+            urlParams: { start: DateTime.formatIso(lastMonth) },
+          }),
+        ).pipe(
+          Stream.merge(
+            transactions(
+              HttpClientRequest.get(`/accounts/${accountId}/transactions`, {
+                urlParams: { start: DateTime.formatIso(lastMonth) },
+              }),
+            ),
+          ),
+        )
+      }).pipe(Stream.unwrap)
+
+    return {
+      transactions: accountTransactions,
+      refresh,
+      lastRefreshed,
+    } as const
+  }).pipe(Effect.withConfigProvider(configProviderNested("akahu"))),
+  dependencies: [NodeHttpClient.layerUndici],
+}) {}
+
+export const AkahuLayer = Effect.gen(function* () {
+  const akahu = yield* Akahu
   const timeZone = yield* DateTime.zoneMakeNamed("Pacific/Auckland")
 
-  const stream = <S extends Schema.Schema.Any>(schema: S) => {
-    const Page = PaginatedResponse(schema)
-    return (request: HttpClientRequest.HttpClientRequest) => {
-      const getPage = (cursor: string | null) =>
-        pipe(
-          request,
-          cursor ? HttpClientRequest.setUrlParam("cursor", cursor) : identity,
-          client.execute,
-          Effect.flatMap(HttpClientResponse.schemaBodyJson(Page)),
-          Effect.scoped,
-          Effect.orDie,
-        )
-
-      return Stream.paginateChunkEffect(null, (cursor: string | null) =>
-        getPage(cursor).pipe(
-          Effect.map(
-            ({ items, cursor }) =>
-              [items, Option.fromNullable(cursor?.next)] as const,
-          ),
-        ),
-      )
-    }
-  }
-
-  const refresh = client.post("/refresh").pipe(Effect.asVoid, Effect.scoped)
-  const accounts = stream(Account)(HttpClientRequest.get("/accounts"))
-  const pendingTransactions = stream(PendingTransaction)
-  const transactions = stream(Transaction)
-  const lastRefreshed = accounts.pipe(
-    Stream.map((account) => account.refreshed.transactions),
-    Stream.runHead,
-    Effect.flatten,
-    Effect.orDie,
-  )
-
-  const accountTransactions = (accountId: string) =>
-    Effect.gen(function* () {
-      const now = yield* DateTime.now
-      const lastMonth = now.pipe(DateTime.subtract({ days: 30 }))
-      const last30Days = yield* pendingTransactions(
-        HttpClientRequest.get(`/accounts/${accountId}/transactions/pending`, {
-          urlParams: { start: DateTime.formatIso(lastMonth) },
-        }),
-      ).pipe(
-        Stream.merge(
-          transactions(
-            HttpClientRequest.get(`/accounts/${accountId}/transactions`, {
-              urlParams: { start: DateTime.formatIso(lastMonth) },
-            }),
-          ),
-        ),
-        Stream.runCollect,
-      )
-      return last30Days.pipe(
-        Chunk.map((t) => t.accountTransaction(timeZone)),
-        Chunk.toReadonlyArray,
-      )
-    })
-
   yield* Effect.log("Refreshing Akahu transactions")
-  const beforeRefresh = yield* lastRefreshed
-  yield* refresh
+  const beforeRefresh = yield* akahu.lastRefreshed
+  yield* akahu.refresh
 
-  yield* lastRefreshed.pipe(
+  yield* akahu.lastRefreshed.pipe(
     Effect.flatMap((refreshed) =>
       DateTime.greaterThan(refreshed, beforeRefresh)
         ? Effect.void
@@ -124,16 +132,20 @@ export const AkahuLive = Effect.gen(function* () {
   )
 
   return Bank.of({
-    exportAccount(accountId) {
-      return accountTransactions(accountId)
-    },
+    exportAccount: (accountId: string) =>
+      akahu.transactions(accountId).pipe(
+        Stream.runCollect,
+        Effect.map((chunk) =>
+          chunk.pipe(
+            Chunk.map((t) => t.accountTransaction(timeZone)),
+            Chunk.toReadonlyArray,
+          ),
+        ),
+      ),
   })
-}).pipe(
-  Effect.withConfigProvider(configProviderNested("akahu")),
-  Effect.annotateLogs({ service: "Bank/Akahu" }),
-  Layer.effect(Bank),
-  Layer.provide(NodeHttpClient.layerUndici),
-)
+}).pipe(Effect.annotateLogs({ service: "Bank/Akahu" }), Layer.effect(Bank))
+
+export const AkahuLive = AkahuLayer.pipe(Layer.provide(Akahu.Default))
 
 export class Merchant extends Schema.Class<Merchant>("Merchant")({
   name: Schema.String,
