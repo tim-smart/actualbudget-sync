@@ -17,6 +17,7 @@
             bun
             corepack
             nodejs_22
+            python3Minimal
           ];
         };
 
