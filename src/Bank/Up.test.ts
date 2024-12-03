@@ -51,10 +51,10 @@ it.layer(BankTest)("Up", (it) => {
       assert.deepStrictEqual(results, [
         {
           account: "actual-checking",
-          amount: 200.5,
+          amount: 20050,
           cleared: false,
           date: "2024-12-03",
-          imported_id: "20241203200.5-1",
+          imported_id: "2024120320050-1",
           notes: "Transaction note",
           payee: "1",
         },
