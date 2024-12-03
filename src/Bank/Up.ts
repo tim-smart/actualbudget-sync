@@ -107,8 +107,26 @@ export const UpLayer = Effect.gen(function* () {
 
 export const UpLive = UpLayer.pipe(Layer.provide(Up.Default))
 
+const BigDecimal100 = BigDecimal.unsafeFromNumber(100)
+const BaseUnitsBigDecimal = Schema.transform(
+  Schema.Number,
+  Schema.BigDecimalFromSelf,
+  {
+    decode(n) {
+      return BigDecimal.unsafeFromNumber(n).pipe(
+        BigDecimal.unsafeDivide(BigDecimal100),
+      )
+    },
+    encode(bd) {
+      return BigDecimal.multiply(bd, BigDecimal100).pipe(
+        BigDecimal.unsafeToNumber,
+      )
+    },
+  },
+)
+
 export class MoneyObject extends Schema.Class<MoneyObject>("MoneyObject")({
-  valueInBaseUnits: Schema.BigDecimalFromNumber,
+  valueInBaseUnits: BaseUnitsBigDecimal,
 }) {}
 
 export class Transaction extends Schema.Class<Transaction>("Transaction")({
@@ -142,10 +160,7 @@ export class Transaction extends Schema.Class<Transaction>("Transaction")({
   accountTransaction(): AccountTransaction {
     return {
       dateTime: this.attributes.createdAt,
-      amount: BigDecimal.unsafeDivide(
-        this.attributes.amount.valueInBaseUnits,
-        BigDecimal.fromNumber(100),
-      ),
+      amount: this.attributes.amount.valueInBaseUnits,
       payee: this.attributes.description,
       notes: this.attributes.note?.text,
       cleared: this.attributes.status === "SETTLED",

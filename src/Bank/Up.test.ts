@@ -1,4 +1,4 @@
-import { BigDecimal, DateTime, Effect, Layer, Schema, Stream } from "effect"
+import { BigDecimal, DateTime, Effect, Layer, Stream } from "effect"
 import { assert, it } from "@effect/vitest"
 import { runTest } from "../Sync"
 import { Up, Transaction, UpLayer, MoneyObject } from "./Up"
