@@ -4,11 +4,11 @@ import { NodeContext, NodeRuntime } from "@effect/platform-node"
 import * as Sync from "./Sync.js"
 import { Actual } from "./Actual.js"
 import { AkahuLive } from "./Bank/Akahu.js"
-import { UpBankLive } from "./Bank/Up.js"
+import { Up } from "./Bank/Up.js"
 
 const banks = {
   akahu: AkahuLive,
-  up: UpBankLive,
+  up: Up,
 } as const
 
 const bank = Options.choice("bank", Struct.keys(banks)).pipe(
