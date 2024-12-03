@@ -5,7 +5,7 @@ import { Array, BigDecimal, DateTime, Effect, pipe } from "effect"
 import { AccountTransaction, AccountTransactionOrder, Bank } from "./Bank.js"
 import { Actual } from "./Actual.js"
 
-const bigDecimal100 = BigDecimal.fromNumber(100)
+const bigDecimal100 = BigDecimal.unsafeFromNumber(100)
 const amountToInt = (amount: BigDecimal.BigDecimal) =>
   amount.pipe(BigDecimal.multiply(bigDecimal100), BigDecimal.unsafeToNumber)
 
