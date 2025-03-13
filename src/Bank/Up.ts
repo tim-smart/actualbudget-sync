@@ -52,7 +52,6 @@ export const UpBankLive = Effect.gen(function* () {
           cursor ? HttpClientRequest.setUrl(cursor.split(URL)[1]) : identity,
           client.execute,
           Effect.flatMap(HttpClientResponse.schemaBodyJson(Page)),
-          Effect.scoped,
           Effect.orDie,
         )
 

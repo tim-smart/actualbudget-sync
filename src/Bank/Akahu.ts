@@ -52,7 +52,6 @@ export class Akahu extends Effect.Service<Akahu>()("Bank/Akahu", {
             cursor ? HttpClientRequest.setUrlParam("cursor", cursor) : identity,
             client.execute,
             Effect.flatMap(HttpClientResponse.schemaBodyJson(Page)),
-            Effect.scoped,
             Effect.orDie,
           )
 
@@ -67,7 +66,7 @@ export class Akahu extends Effect.Service<Akahu>()("Bank/Akahu", {
       }
     }
 
-    const refresh = client.post("/refresh").pipe(Effect.asVoid, Effect.scoped)
+    const refresh = client.post("/refresh").pipe(Effect.asVoid)
     const accounts = stream(Account)(HttpClientRequest.get("/accounts"))
     const pendingTransactions = stream(PendingTransaction)
     const transactions = stream(Transaction)
