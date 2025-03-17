@@ -115,7 +115,7 @@ export const AkahuLayer = Effect.gen(function* () {
 
   yield* akahu.lastRefreshed.pipe(
     Effect.flatMap((refreshed) =>
-      DateTime.greaterThan(refreshed, beforeRefresh)
+      DateTime.greaterThanOrEqualTo(refreshed, beforeRefresh)
         ? Effect.void
         : new BankError({
             reason: "Unknown",
