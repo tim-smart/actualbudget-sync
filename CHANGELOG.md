@@ -1,5 +1,15 @@
 # @tim-smart/actualbudget-sync
 
+## 0.2.6
+
+### Patch Changes
+
+- [`a50ecd5`](https://github.com/tim-smart/actualbudget-sync/commit/a50ecd5856ab9d71e517718ae789e23a15acb864) Thanks [@tim-smart](https://github.com/tim-smart)! - update deps
+
+- [`cc09b04`](https://github.com/tim-smart/actualbudget-sync/commit/cc09b04b005669c116badbf6064d5ba0daa23c14) Thanks [@tim-smart](https://github.com/tim-smart)! - update deps
+
+- [#14](https://github.com/tim-smart/actualbudget-sync/pull/14) [`207eb1f`](https://github.com/tim-smart/actualbudget-sync/commit/207eb1ffbaaa49580e4e98b141ba2ce7b7768971) Thanks [@tim-smart](https://github.com/tim-smart)! - add test for Akahu
+
 ## 0.2.5
 
 ### Patch Changes
