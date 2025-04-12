@@ -28,23 +28,23 @@
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.1",
     "@changesets/cli": "^2.28.1",
-    "@effect/cli": "^0.58.1",
-    "@effect/language-service": "^0.4.0",
-    "@effect/platform": "^0.79.1",
-    "@effect/platform-node": "^0.75.1",
-    "@effect/vitest": "^0.19.8",
-    "@types/node": "^22.13.10",
-    "effect": "^3.13.10",
+    "@effect/cli": "^0.59.8",
+    "@effect/language-service": "^0.6.0",
+    "@effect/platform": "^0.80.8",
+    "@effect/platform-node": "^0.76.13",
+    "@effect/vitest": "^0.20.8",
+    "@types/node": "^22.14.1",
+    "effect": "^3.14.8",
     "glob": "^11.0.1",
     "prettier": "^3.5.3",
     "rimraf": "^6.0.1",
     "tsup": "^8.4.0",
     "tsx": "^4.19.3",
-    "typescript": "^5.8.2",
-    "vitest": "^3.0.8"
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.1"
   },
   "dependencies": {
-    "@actual-app/api": "^25.3.1",
-    "playwright": "^1.51.0"
+    "@actual-app/api": "^25.4.0",
+    "playwright": "^1.51.1"
   }
 }
