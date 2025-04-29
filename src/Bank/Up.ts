@@ -68,20 +68,19 @@ export const UpBankLive = Effect.gen(function* () {
 
   const transactions = stream(Transaction)
 
-  const accountTransactions = (accountId: string) =>
-    Effect.gen(function* () {
-      const now = yield* DateTime.now
-      const lastMonth = now.pipe(DateTime.subtract({ days: 30 }))
-      const last30Days = yield* transactions(
-        HttpClientRequest.get(`/accounts/${accountId}/transactions`, {
-          urlParams: { "filter[since]": DateTime.formatIso(lastMonth) },
-        }),
-      ).pipe(Stream.runCollect)
-      return last30Days.pipe(
-        Chunk.map((t) => t.accountTransaction()),
-        Chunk.toReadonlyArray,
-      )
-    })
+  const accountTransactions = Effect.fnUntraced(function* (accountId: string) {
+    const now = yield* DateTime.now
+    const lastMonth = now.pipe(DateTime.subtract({ days: 30 }))
+    const last30Days = yield* transactions(
+      HttpClientRequest.get(`/accounts/${accountId}/transactions`, {
+        urlParams: { "filter[since]": DateTime.formatIso(lastMonth) },
+      }),
+    ).pipe(Stream.runCollect)
+    return last30Days.pipe(
+      Chunk.map((t) => t.accountTransaction()),
+      Chunk.toReadonlyArray,
+    )
+  })
 
   return Bank.of({
     exportAccount(accountId) {
@@ -132,7 +131,7 @@ class Transaction extends Schema.Class<Transaction>("Transaction")({
       dateTime: this.attributes.createdAt,
       amount: BigDecimal.unsafeDivide(
         this.attributes.amount.valueInBaseUnits,
-        BigDecimal.fromNumber(100),
+        BigDecimal.unsafeFromNumber(100),
       ),
       payee: this.attributes.description,
       notes: this.attributes.note?.text,

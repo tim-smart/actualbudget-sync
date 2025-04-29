@@ -5,7 +5,7 @@ import { Array, BigDecimal, DateTime, Effect, pipe } from "effect"
 import { AccountTransaction, AccountTransactionOrder, Bank } from "./Bank.js"
 import { Actual } from "./Actual.js"
 
-const bigDecimal100 = BigDecimal.fromNumber(100)
+const bigDecimal100 = BigDecimal.unsafeFromNumber(100)
 const amountToInt = (amount: BigDecimal.BigDecimal) =>
   amount.pipe(BigDecimal.multiply(bigDecimal100), BigDecimal.unsafeToNumber)
 
@@ -54,44 +54,43 @@ export const runCollect = (options: {
 
     return yield* Effect.forEach(
       options.accounts,
-      ({ bankAccountId, actualAccountId }) =>
-        Effect.gen(function* () {
-          const transactions = yield* bank.exportAccount(bankAccountId)
-          const ids: Array<string> = []
-          const forImport = pipe(
-            transactions,
-            Array.sort(AccountTransactionOrder),
-            Array.map((transaction) => {
-              const imported_id = importId(transaction)
-              const category = options.categorize && categoryId(transaction)
-              const transferPayee =
-                transaction.transfer && transferAccountId(transaction)
+      Effect.fnUntraced(function* ({ bankAccountId, actualAccountId }) {
+        const transactions = yield* bank.exportAccount(bankAccountId)
+        const ids: Array<string> = []
+        const forImport = pipe(
+          transactions,
+          Array.sort(AccountTransactionOrder),
+          Array.map((transaction) => {
+            const imported_id = importId(transaction)
+            const category = options.categorize && categoryId(transaction)
+            const transferPayee =
+              transaction.transfer && transferAccountId(transaction)
 
-              ids.push(imported_id)
+            ids.push(imported_id)
 
-              return {
-                imported_id,
-                date: DateTime.formatIsoDate(transaction.dateTime),
-                ...(transferPayee
-                  ? { payee: transferPayee }
-                  : { payee_name: transaction.payee }),
-                amount: amountToInt(transaction.amount),
-                notes: transaction.notes,
-                cleared: transaction.cleared,
-                ...(category ? { category } : undefined),
-              }
-            }),
-          )
-          return {
-            transactions: forImport,
-            ids,
-            actualAccountId,
-          }
-        }),
+            return {
+              imported_id,
+              date: DateTime.formatIsoDate(transaction.dateTime),
+              ...(transferPayee
+                ? { payee: transferPayee }
+                : { payee_name: transaction.payee }),
+              amount: amountToInt(transaction.amount),
+              notes: transaction.notes,
+              cleared: transaction.cleared,
+              ...(category ? { category } : undefined),
+            }
+          }),
+        )
+        return {
+          transactions: forImport,
+          ids,
+          actualAccountId,
+        }
+      }),
     )
   })
 
-export const run = (options: {
+export const run = Effect.fnUntraced(function* (options: {
   readonly accounts: ReadonlyArray<{
     readonly bankAccountId: string
     readonly actualAccountId: string
@@ -101,26 +100,25 @@ export const run = (options: {
     readonly bankCategory: string
     readonly actualCategory: string
   }>
-}) =>
-  Effect.gen(function* () {
-    const actual = yield* Actual
-    const categories = yield* actual.use((_) => _.getCategories())
-    const payees = yield* actual.use((_) => _.getPayees())
+}) {
+  const actual = yield* Actual
+  const categories = yield* actual.use((_) => _.getCategories())
+  const payees = yield* actual.use((_) => _.getPayees())
 
-    const results = yield* runCollect({
-      ...options,
-      categories,
-      payees,
-    })
-
-    for (const { transactions, ids, actualAccountId } of results) {
-      const alreadyImported = yield* actual.findImportedIds(ids)
-      const filtered = transactions.filter(
-        (t) => !alreadyImported.includes(t.imported_id),
-      )
-      yield* actual.use((_) => _.importTransactions(actualAccountId, filtered))
-    }
+  const results = yield* runCollect({
+    ...options,
+    categories,
+    payees,
   })
+
+  for (const { transactions, ids, actualAccountId } of results) {
+    const alreadyImported = yield* actual.findImportedIds(ids)
+    const filtered = transactions.filter(
+      (t) => !alreadyImported.includes(t.imported_id),
+    )
+    yield* actual.use((_) => _.importTransactions(actualAccountId, filtered))
+  }
+})
 
 const makeImportId = () => {
   const counters = new Map<string, number>()
@@ -152,33 +150,32 @@ export const testPayees = [
   { id: "7", name: "Savings", transfer_acct: "actual-savings" },
 ]
 
-export const runTest = (options: {
+export const runTest = Effect.fnUntraced(function* (options: {
   readonly categorize: boolean
   readonly categoryMapping?: ReadonlyArray<{
     readonly bankCategory: string
     readonly actualCategory: string
   }>
-}) =>
-  Effect.gen(function* () {
-    const results = yield* runCollect({
-      ...options,
-      accounts: [
-        {
-          bankAccountId: "checking",
-          actualAccountId: "actual-checking",
-        },
-        {
-          bankAccountId: "savings",
-          actualAccountId: "actual-savings",
-        },
-      ],
-      categories: testCategories,
-      payees: testPayees,
-    })
-    return results.flatMap((account) =>
-      account.transactions.map((transaction) => ({
-        ...transaction,
-        account: account.actualAccountId,
-      })),
-    )
+}) {
+  const results = yield* runCollect({
+    ...options,
+    accounts: [
+      {
+        bankAccountId: "checking",
+        actualAccountId: "actual-checking",
+      },
+      {
+        bankAccountId: "savings",
+        actualAccountId: "actual-savings",
+      },
+    ],
+    categories: testCategories,
+    payees: testPayees,
   })
+  return results.flatMap((account) =>
+    account.transactions.map((transaction) => ({
+      ...transaction,
+      account: account.actualAccountId,
+    })),
+  )
+})

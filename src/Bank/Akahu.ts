@@ -77,24 +77,28 @@ export class Akahu extends Effect.Service<Akahu>()("Bank/Akahu", {
       Effect.orDie,
     )
 
-    const accountTransactions = (accountId: string) =>
-      Effect.gen(function* () {
-        const now = yield* DateTime.now
-        const lastMonth = now.pipe(DateTime.subtract({ days: 30 }))
-        return pendingTransactions(
-          HttpClientRequest.get(`/accounts/${accountId}/transactions/pending`, {
-            urlParams: { start: DateTime.formatIso(lastMonth) },
-          }),
-        ).pipe(
-          Stream.merge(
-            transactions(
-              HttpClientRequest.get(`/accounts/${accountId}/transactions`, {
-                urlParams: { start: DateTime.formatIso(lastMonth) },
-              }),
-            ),
+    const accountTransactions = Effect.fnUntraced(function* (
+      accountId: string,
+    ) {
+      const now = yield* DateTime.now
+      const lastMonth = now.pipe(DateTime.subtract({ days: 30 }))
+      return pendingTransactions(
+        HttpClientRequest.get(`/accounts/${accountId}/transactions/pending`, {
+          urlParams: {
+            start: DateTime.formatIso(lastMonth),
+            amount_as_number: true,
+          },
+        }),
+      ).pipe(
+        Stream.merge(
+          transactions(
+            HttpClientRequest.get(`/accounts/${accountId}/transactions`, {
+              urlParams: { start: DateTime.formatIso(lastMonth) },
+            }),
           ),
-        )
-      }).pipe(Stream.unwrap)
+        ),
+      )
+    }, Stream.unwrap)
 
     return {
       transactions: accountTransactions,
@@ -192,7 +196,7 @@ export class PendingTransaction extends Schema.Class<PendingTransaction>(
   _connection: ConnectionId,
   date: Schema.DateTimeUtc,
   description: Schema.String,
-  amount: Schema.BigDecimal,
+  amount: Schema.BigDecimalFromNumber,
 }) {
   accountTransaction(timeZone: DateTime.TimeZone): AccountTransaction {
     return {
