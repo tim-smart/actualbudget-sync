@@ -1,15 +1,15 @@
 /**
  * @since 1.0.0
  */
-import { Array, BigDecimal, DateTime, Effect, pipe } from "effect"
+import { Array, BigDecimal, DateTime, Effect, Fiber, pipe } from "effect"
 import { AccountTransaction, AccountTransactionOrder, Bank } from "./Bank.js"
-import { Actual } from "./Actual.js"
+import { Actual, ActualError } from "./Actual.js"
 
 const bigDecimal100 = BigDecimal.unsafeFromNumber(100)
 const amountToInt = (amount: BigDecimal.BigDecimal) =>
   amount.pipe(BigDecimal.multiply(bigDecimal100), BigDecimal.unsafeToNumber)
 
-export const runCollect = (options: {
+export const runCollect = Effect.fnUntraced(function* (options: {
   readonly accounts: ReadonlyArray<{
     readonly bankAccountId: string
     readonly actualAccountId: string
@@ -28,67 +28,66 @@ export const runCollect = (options: {
     readonly name: string
     readonly transfer_acct?: string
   }>
-}) =>
-  Effect.gen(function* () {
-    const bank = yield* Bank
-    const importId = makeImportId()
+}) {
+  const bank = yield* Bank
+  const importId = makeImportId()
 
-    const categoryId = (transaction: AccountTransaction) => {
-      const categoryName =
-        options.categoryMapping?.find(
-          (mapping) => mapping.bankCategory === transaction.category,
-        )?.actualCategory ?? transaction.category
-      const category = options.categories.find(
-        (c) => c.name.toLowerCase() === categoryName?.toLowerCase(),
-      )
-      return category ? category.id : undefined
-    }
-
-    const transferAccountId = (transaction: AccountTransaction) => {
-      const transferToAccount = options.accounts.find(
-        ({ bankAccountId }) => bankAccountId === transaction.transfer,
-      )?.actualAccountId
-      return options.payees.find((it) => it.transfer_acct === transferToAccount)
-        ?.id
-    }
-
-    return yield* Effect.forEach(
-      options.accounts,
-      Effect.fnUntraced(function* ({ bankAccountId, actualAccountId }) {
-        const transactions = yield* bank.exportAccount(bankAccountId)
-        const ids: Array<string> = []
-        const forImport = pipe(
-          transactions,
-          Array.sort(AccountTransactionOrder),
-          Array.map((transaction) => {
-            const imported_id = importId(transaction)
-            const category = options.categorize && categoryId(transaction)
-            const transferPayee =
-              transaction.transfer && transferAccountId(transaction)
-
-            ids.push(imported_id)
-
-            return {
-              imported_id,
-              date: DateTime.formatIsoDate(transaction.dateTime),
-              ...(transferPayee
-                ? { payee: transferPayee }
-                : { payee_name: transaction.payee }),
-              amount: amountToInt(transaction.amount),
-              notes: transaction.notes,
-              cleared: transaction.cleared,
-              ...(category ? { category } : undefined),
-            }
-          }),
-        )
-        return {
-          transactions: forImport,
-          ids,
-          actualAccountId,
-        }
-      }),
+  const categoryId = (transaction: AccountTransaction) => {
+    const categoryName =
+      options.categoryMapping?.find(
+        (mapping) => mapping.bankCategory === transaction.category,
+      )?.actualCategory ?? transaction.category
+    const category = options.categories.find(
+      (c) => c.name.toLowerCase() === categoryName?.toLowerCase(),
     )
-  })
+    return category ? category.id : undefined
+  }
+
+  const transferAccountId = (transaction: AccountTransaction) => {
+    const transferToAccount = options.accounts.find(
+      ({ bankAccountId }) => bankAccountId === transaction.transfer,
+    )?.actualAccountId
+    return options.payees.find((it) => it.transfer_acct === transferToAccount)
+      ?.id
+  }
+
+  return yield* Effect.forEach(
+    options.accounts,
+    Effect.fnUntraced(function* ({ bankAccountId, actualAccountId }) {
+      const transactions = yield* bank.exportAccount(bankAccountId)
+      const ids: Array<string> = []
+      const forImport = pipe(
+        transactions,
+        Array.sort(AccountTransactionOrder),
+        Array.map((transaction) => {
+          const imported_id = importId(transaction)
+          const category = options.categorize && categoryId(transaction)
+          const transferPayee =
+            transaction.transfer && transferAccountId(transaction)
+
+          ids.push(imported_id)
+
+          return {
+            imported_id,
+            date: DateTime.formatIsoDate(transaction.dateTime),
+            ...(transferPayee
+              ? { payee: transferPayee }
+              : { payee_name: transaction.payee }),
+            amount: amountToInt(transaction.amount),
+            notes: transaction.notes,
+            cleared: transaction.cleared,
+            ...(category ? { category } : undefined),
+          }
+        }),
+      )
+      return {
+        transactions: forImport,
+        ids,
+        actualAccountId,
+      }
+    }),
+  )
+})
 
 export const run = Effect.fnUntraced(function* (options: {
   readonly accounts: ReadonlyArray<{
@@ -112,11 +111,28 @@ export const run = Effect.fnUntraced(function* (options: {
   })
 
   for (const { transactions, ids, actualAccountId } of results) {
-    const alreadyImported = yield* actual.findImportedIds(ids)
-    const filtered = transactions.filter(
-      (t) => !alreadyImported.includes(t.imported_id),
-    )
-    yield* actual.use((_) => _.importTransactions(actualAccountId, filtered))
+    const alreadyImported = yield* actual.findImported(ids)
+    let toImport: typeof transactions = []
+    const updates = Array.empty<Fiber.RuntimeFiber<unknown, ActualError>>()
+    for (const transaction of transactions) {
+      const existing = alreadyImported.get(transaction.imported_id)
+      if (!existing) {
+        toImport.push(transaction)
+      } else if (transaction.cleared && !existing.cleared) {
+        updates.push(
+          yield* Effect.fork(
+            actual.use((_) =>
+              _.updateTransaction(existing.id, {
+                cleared: true,
+                amount: transaction.amount,
+              }),
+            ),
+          ),
+        )
+      }
+    }
+    yield* actual.use((_) => _.importTransactions(actualAccountId, toImport))
+    yield* Fiber.awaitAll(updates)
   }
 })
 

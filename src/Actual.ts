@@ -99,18 +99,28 @@ export class Actual extends Effect.Service<Actual>()("Actual", {
         Effect.map((result: any) => result.data as ReadonlyArray<A>),
       )
 
-    const findImportedIds = (importedIds: ReadonlyArray<string>) =>
+    const findImported = (importedIds: ReadonlyArray<string>) =>
       importedIds.length === 0
-        ? Effect.succeed([])
-        : query<{ imported_id: string }>((q) =>
+        ? Effect.succeed(new Map<never, never>())
+        : query<{ id: string; imported_id: string; cleared: boolean }>((q) =>
             q("transactions")
               .select(["*"])
               .filter({
                 $or: importedIds.map((imported_id) => ({ imported_id })),
               })
               .withDead(),
-          ).pipe(Effect.map(Array.map((row) => row.imported_id)))
+          ).pipe(
+            Effect.map(
+              Array.reduce(
+                new Map<string, { id: string; cleared: boolean }>(),
+                (acc, item) => {
+                  acc.set(item.imported_id, item)
+                  return acc
+                },
+              ),
+            ),
+          )
 
-    return { use, query, findImportedIds } as const
+    return { use, query, findImported } as const
   }).pipe(Effect.withConfigProvider(configProviderNested("actual"))),
 }) {}

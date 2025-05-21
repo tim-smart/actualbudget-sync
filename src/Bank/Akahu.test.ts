@@ -1,4 +1,4 @@
-import { BigDecimal, DateTime, Effect, Layer, Logger, Stream } from "effect"
+import { BigDecimal, DateTime, Effect, Layer, Stream } from "effect"
 import {
   AccountId,
   Akahu,
