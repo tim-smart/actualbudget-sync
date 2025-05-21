@@ -61,8 +61,12 @@ export class Actual extends Effect.Service<Actual>()("Actual", {
       })
       return yield* Effect.promise(() => import(name) as Promise<typeof Api>)
     }).pipe(
-      Effect.tapErrorCause(Effect.logInfo),
+      Effect.tapErrorCause(Effect.logWarning),
       Effect.orElseSucceed(() => Api),
+      Effect.annotateLogs({
+        module: "Actual",
+        method: "getApi",
+      }),
     )
 
     const use = <A>(
