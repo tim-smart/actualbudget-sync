@@ -52,5 +52,10 @@
     "node-fetch": "^3.3.2",
     "playwright": "^1.52.0",
     "uuid": "^9.0.1"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3"
+    ]
   }
 }
