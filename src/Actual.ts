@@ -44,9 +44,9 @@ export class Actual extends Effect.Service<Actual>()("Actual", {
 
     const api = yield* Effect.gen(function* () {
       const version = yield* serverVersion
-      if (version === ApiPackage.version) {
-        return Api
-      }
+      // if (version === ApiPackage.version) {
+      //   return Api
+      // }
       yield* Effect.logInfo(
         "Actual API version mismatch. Attempting to update.",
       ).pipe(
