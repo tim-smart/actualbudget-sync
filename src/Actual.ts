@@ -1,9 +1,13 @@
 /**
  * @since 1.0.0
  */
-import { Array, Config, Data, Effect, Redacted } from "effect"
+import { Array, Config, Data, Effect, Redacted, Schema } from "effect"
 import * as Api from "@actual-app/api"
+import * as ApiPackage from "@actual-app/api/package.json"
 import { configProviderNested } from "./internal/utils.js"
+import { HttpClient, HttpClientResponse } from "@effect/platform"
+import { Npm } from "./Npm.js"
+import { NodeHttpClient } from "@effect/platform-node"
 
 export type Query = ReturnType<typeof Api.q>
 
@@ -12,7 +16,12 @@ export class ActualError extends Data.TaggedError("ActualError")<{
 }> {}
 
 export class Actual extends Effect.Service<Actual>()("Actual", {
+  dependencies: [NodeHttpClient.layerUndici, Npm.Default],
   scoped: Effect.gen(function* () {
+    const httpClient = (yield* HttpClient.HttpClient).pipe(
+      HttpClient.filterStatusOk,
+    )
+    const npm = yield* Npm
     const dataDir = yield* Config.string("data").pipe(
       Config.withDefault("data"),
     )
@@ -20,11 +29,47 @@ export class Actual extends Effect.Service<Actual>()("Actual", {
     const password = yield* Config.redacted("password")
     const syncId = yield* Config.string("syncId")
 
+    const serverVersion = httpClient.get(`${server}info`).pipe(
+      Effect.flatMap(
+        HttpClientResponse.schemaBodyJson(
+          Schema.Struct({
+            build: Schema.Struct({
+              version: Schema.String,
+            }),
+          }),
+        ),
+      ),
+      Effect.map((_) => _.build.version),
+    )
+
+    const api = yield* Effect.gen(function* () {
+      const version = yield* serverVersion
+      if (version === ApiPackage.version) {
+        return Api
+      }
+      yield* Effect.logInfo(
+        "Actual API version mismatch. Attempting to update.",
+      ).pipe(
+        Effect.annotateLogs({
+          serverVersion: version,
+          localVersion: ApiPackage.version,
+        }),
+      )
+      const name = yield* npm.install({
+        packageName: "@actual-app/api",
+        version,
+      })
+      return yield* Effect.promise(() => import(name) as Promise<typeof Api>)
+    }).pipe(
+      Effect.tapErrorCause(Effect.logInfo),
+      Effect.orElseSucceed(() => Api),
+    )
+
     const use = <A>(
       f: (api: typeof Api) => Promise<A>,
     ): Effect.Effect<A, ActualError> =>
       Effect.tryPromise({
-        try: () => f(Api),
+        try: () => f(api),
         catch: (cause) => new ActualError({ cause }),
       })
 
@@ -36,10 +81,10 @@ export class Actual extends Effect.Service<Actual>()("Actual", {
           password: Redacted.value(password),
         }),
       ),
-      () => Effect.promise(() => Api.shutdown()),
+      () => Effect.promise(() => api.shutdown()),
     )
 
-    const sync = Effect.promise(() => Api.sync())
+    const sync = Effect.promise(() => api.sync())
 
     yield* use((_) => _.downloadBudget(syncId))
     yield* Effect.addFinalizer(() => sync)
