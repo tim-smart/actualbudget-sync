@@ -1,5 +1,11 @@
 # @tim-smart/actualbudget-sync
 
+## 0.2.7
+
+### Patch Changes
+
+- [`5272b5d`](https://github.com/tim-smart/actualbudget-sync/commit/5272b5d6b454284df42b4530d818e92f19f3b83b) Thanks [@tim-smart](https://github.com/tim-smart)! - auto sync api library version
+
 ## 0.2.6
 
 ### Patch Changes
