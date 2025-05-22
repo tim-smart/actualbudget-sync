@@ -8,6 +8,7 @@ import { configProviderNested } from "./internal/utils.js"
 import { HttpClient, HttpClientResponse } from "@effect/platform"
 import { Npm } from "./Npm.js"
 import { NodeHttpClient } from "@effect/platform-node"
+import { TransactionEntity } from "@actual-app/api/@types/loot-core/types/models/transaction.js"
 
 export type Query = ReturnType<typeof Api.q>
 
@@ -102,7 +103,7 @@ export class Actual extends Effect.Service<Actual>()("Actual", {
     const findImported = (importedIds: ReadonlyArray<string>) =>
       importedIds.length === 0
         ? Effect.succeed(new Map<never, never>())
-        : query<{ id: string; imported_id: string; cleared: boolean }>((q) =>
+        : query<TransactionEntity>((q) =>
             q("transactions")
               .select(["*"])
               .filter({
@@ -112,9 +113,9 @@ export class Actual extends Effect.Service<Actual>()("Actual", {
           ).pipe(
             Effect.map(
               Array.reduce(
-                new Map<string, { id: string; cleared: boolean }>(),
+                new Map<string, TransactionEntity>(),
                 (acc, item) => {
-                  acc.set(item.imported_id, item)
+                  acc.set(item.imported_id!, item)
                   return acc
                 },
               ),

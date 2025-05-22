@@ -4,6 +4,10 @@
 import { Array, BigDecimal, DateTime, Effect, Fiber, pipe } from "effect"
 import { AccountTransaction, AccountTransactionOrder, Bank } from "./Bank.js"
 import { Actual, ActualError } from "./Actual.js"
+import {
+  APICategoryEntity,
+  APIPayeeEntity,
+} from "@actual-app/api/@types/loot-core/server/api-models.js"
 
 const bigDecimal100 = BigDecimal.unsafeFromNumber(100)
 const amountToInt = (amount: BigDecimal.BigDecimal) =>
@@ -101,8 +105,12 @@ export const run = Effect.fnUntraced(function* (options: {
   }>
 }) {
   const actual = yield* Actual
-  const categories = yield* actual.use((_) => _.getCategories())
-  const payees = yield* actual.use((_) => _.getPayees())
+  const categories = yield* actual.use(
+    (_) => _.getCategories() as Promise<Array<APICategoryEntity>>,
+  )
+  const payees = yield* actual.use(
+    (_) => _.getPayees() as Promise<Array<APIPayeeEntity>>,
+  )
 
   const results = yield* runCollect({
     ...options,
@@ -129,6 +137,24 @@ export const run = Effect.fnUntraced(function* (options: {
             ),
           ),
         )
+
+        const existingPayee = payees.find((p) => p.id === existing.payee)
+        if (
+          existingPayee &&
+          "payee_name" in transaction &&
+          transaction.payee_name !== existing.imported_payee &&
+          existingPayee.name === existing.imported_payee
+        ) {
+          updates.push(
+            yield* Effect.fork(
+              actual.use((_) =>
+                _.updatePayee(existingPayee.id, {
+                  name: transaction.payee_name,
+                }),
+              ),
+            ),
+          )
+        }
       }
     }
     yield* actual.use((_) => _.importTransactions(actualAccountId, toImport))
