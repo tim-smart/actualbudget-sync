@@ -11,6 +11,8 @@ Features:
     in Actual Budget with the cleared amount.
   - If the payee name is updated by the bank, it will also update the
     transaction in Actual Budget if you haven't renamed it already.
+- Automatically matches the API client with the Actual server version, so you
+  don't have to worry about keeping up-to-date.
 - Supports categorization of transactions for banks that support it.
 
 ## Installation
