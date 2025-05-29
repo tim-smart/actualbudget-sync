@@ -1,5 +1,11 @@
 # @tim-smart/actualbudget-sync
 
+## 0.3.0
+
+### Minor Changes
+
+- [`b40c026`](https://github.com/tim-smart/actualbudget-sync/commit/b40c0260809284130e35fdeb2b3cb40ab9dfeaba) Thanks [@tim-smart](https://github.com/tim-smart)! - change bin name to `actualsync`
+
 ## 0.2.7
 
 ### Patch Changes
