@@ -1,4 +1,4 @@
-import { Command, Options } from "@effect/cli"
+import { CliConfig, Command, Options } from "@effect/cli"
 import { Effect, Layer, Struct, Option } from "effect"
 import { NodeContext, NodeRuntime } from "@effect/platform-node"
 import * as Sync from "./Sync.js"
@@ -65,4 +65,12 @@ const run = Command.make("actualsync", {
   }),
 )
 
-run(process.argv).pipe(Effect.provide(NodeContext.layer), NodeRuntime.runMain)
+run(process.argv).pipe(
+  Effect.provide([
+    NodeContext.layer,
+    CliConfig.layer({
+      showBuiltIns: false,
+    }),
+  ]),
+  NodeRuntime.runMain,
+)
