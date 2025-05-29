@@ -133,6 +133,9 @@ export const run = Effect.fnUntraced(function* (options: {
               _.updateTransaction(existing.id, {
                 cleared: true,
                 amount: transaction.amount,
+                ...(!existing.category && transaction.category
+                  ? { category: transaction.category }
+                  : {}),
               }),
             ),
           ),

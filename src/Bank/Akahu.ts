@@ -172,12 +172,14 @@ export class Transaction extends Schema.Class<Transaction>("Transaction")({
   description: Schema.String,
   amount: Schema.BigDecimalFromNumber,
   merchant: Schema.optional(Merchant),
+  category: Schema.optional(Category),
 }) {
   accountTransaction(timeZone: DateTime.TimeZone): AccountTransaction {
     return {
       dateTime: this.date.pipe(DateTime.setZone(timeZone)),
       amount: this.amount,
       payee: this.merchant?.name ?? this.description,
+      category: this.category?.name,
       notes: this.description,
       cleared: true,
     }
