@@ -7,7 +7,7 @@ Features:
 - Syncs transactions from banks like Akahu and Up to Actual Budget.
 - If the bank supports pending transactions, it will also sync those for
   real-time updates.
-  - When the pending transaction is cleared, it will be update the transaction
+  - When the pending transaction is cleared, it will update the transaction
     in Actual Budget with the cleared amount.
   - If the payee name is updated by the bank, it will also update the
     transaction in Actual Budget if you haven't renamed it already.
