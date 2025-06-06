@@ -210,10 +210,14 @@ export class PendingTransaction extends Schema.Class<PendingTransaction>(
   }
 }
 
+const OptionalDateTimeUtc = Schema.optionalWith(Schema.DateTimeUtc, {
+  default: DateTime.unsafeNow,
+})
+
 export class Refreshed extends Schema.Class<Refreshed>("Refreshed")({
   meta: Schema.DateTimeUtc,
-  transactions: Schema.DateTimeUtc,
-  party: Schema.DateTimeUtc,
+  transactions: OptionalDateTimeUtc,
+  party: OptionalDateTimeUtc,
 }) {}
 
 export class Account extends Schema.Class<Account>("AccountElement")({
