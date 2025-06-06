@@ -1,5 +1,11 @@
 # @tim-smart/actualbudget-sync
 
+## 0.3.1
+
+### Patch Changes
+
+- [`f0e6979`](https://github.com/tim-smart/actualbudget-sync/commit/f0e69796b814761f09be6521db0b7e535f57d40e) Thanks [@tim-smart](https://github.com/tim-smart)! - make some schema props optional
+
 ## 0.3.0
 
 ### Minor Changes
