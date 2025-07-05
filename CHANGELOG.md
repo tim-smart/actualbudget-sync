@@ -1,5 +1,11 @@
 # @tim-smart/actualbudget-sync
 
+## 0.3.2
+
+### Patch Changes
+
+- [`b110f84`](https://github.com/tim-smart/actualbudget-sync/commit/b110f84a965b88f76393bcbb22da6a6a130199c5) Thanks [@tim-smart](https://github.com/tim-smart)! - ensure trailing slash on server urls
+
 ## 0.3.1
 
 ### Patch Changes
