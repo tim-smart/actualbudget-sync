@@ -5,7 +5,7 @@ import { Array, Config, Data, Effect, Redacted, Schema } from "effect"
 import * as Api from "@actual-app/api"
 import * as ApiPackage from "@actual-app/api/package.json"
 import { configProviderNested } from "./internal/utils.js"
-import { HttpClient, HttpClientResponse } from "@effect/platform"
+import { HttpClient, HttpClientResponse, Path } from "@effect/platform"
 import { Npm } from "./Npm.js"
 import { NodeHttpClient } from "@effect/platform-node"
 import { TransactionEntity } from "@actual-app/api/@types/loot-core/types/models/transaction.js"
@@ -19,6 +19,7 @@ export class ActualError extends Data.TaggedError("ActualError")<{
 export class Actual extends Effect.Service<Actual>()("Actual", {
   dependencies: [NodeHttpClient.layerUndici, Npm.Default],
   scoped: Effect.gen(function* () {
+    const path = yield* Path.Path
     const httpClient = (yield* HttpClient.HttpClient).pipe(
       HttpClient.filterStatusOk,
     )
@@ -26,11 +27,15 @@ export class Actual extends Effect.Service<Actual>()("Actual", {
     const dataDir = yield* Config.string("data").pipe(
       Config.withDefault("data"),
     )
-    const server = yield* Config.string("server")
+    const server = yield* Config.url("server")
     const password = yield* Config.redacted("password")
     const syncId = yield* Config.string("syncId")
 
-    const serverVersion = httpClient.get(`${server}info`).pipe(
+    if (!server.pathname.endsWith("/")) {
+      server.pathname += "/"
+    }
+
+    const serverVersion = httpClient.get(`${server.toString()}info`).pipe(
       Effect.flatMap(
         HttpClientResponse.schemaBodyJson(
           Schema.Struct({
@@ -82,7 +87,7 @@ export class Actual extends Effect.Service<Actual>()("Actual", {
       use((_) =>
         _.init({
           dataDir,
-          serverURL: server,
+          serverURL: server.toString(),
           password: Redacted.value(password),
         }),
       ),

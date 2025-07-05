@@ -27,31 +27,31 @@
   "license": "MIT",
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.1",
-    "@changesets/cli": "^2.29.4",
-    "@effect/cli": "^0.63.3",
-    "@effect/language-service": "^0.17.1",
-    "@effect/platform": "^0.84.3",
-    "@effect/platform-node": "^0.83.3",
-    "@effect/vitest": "^0.23.2",
-    "@types/node": "^22.15.26",
-    "effect": "^3.16.2",
-    "glob": "^11.0.2",
-    "prettier": "^3.5.3",
+    "@changesets/cli": "^2.29.5",
+    "@effect/cli": "^0.66.7",
+    "@effect/language-service": "^0.23.5",
+    "@effect/platform": "^0.87.7",
+    "@effect/platform-node": "^0.88.11",
+    "@effect/vitest": "^0.23.12",
+    "@types/node": "^24.0.10",
+    "effect": "^3.16.12",
+    "glob": "^11.0.3",
+    "prettier": "^3.6.2",
     "rimraf": "^6.0.1",
     "tar": "^7.4.3",
     "tsup": "^8.5.0",
-    "tsx": "^4.19.4",
+    "tsx": "^4.20.3",
     "typescript": "^5.8.3",
-    "vitest": "^3.1.4"
+    "vitest": "^3.2.4"
   },
   "dependencies": {
-    "@actual-app/api": "^25.4.0",
+    "@actual-app/api": "^25.7.1",
     "@actual-app/crdt": "^2.1.0",
     "better-sqlite3": "^11.9.1",
     "compare-versions": "^6.1.1",
     "node-fetch": "^3.3.2",
-    "playwright": "^1.52.0",
-    "uuid": "^9.0.1"
+    "playwright": "^1.53.2",
+    "uuid": "^11.1.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
