@@ -42,6 +42,10 @@ actualsync --bank akahu \
   --accounts 'actual-account-id2=bank-account-id2'
 ```
 
+Your sync ID can be found in Actual Budget under Settings > Show Advanced Settings > IDs.
+Your Actual Budget Account IDs can be found from the account URL in the Actual Budget UI (e.g., `https://actual.example.com/accounts/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`).
+Your Akahu Account IDs can be found from the URL on the Akahu web UI (e.g., 'https://my.akahu.nz/connections/conn_id/acc_xxxxxxxxxxxxxxxxxxxxxxxxx').
+
 ### Docker
 
 You can also use the pre-built docker image: [`timsmart/actualbudget-sync:main`](https://hub.docker.com/r/timsmart/actualbudget-sync).
