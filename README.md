@@ -17,11 +17,20 @@ Features:
 
 ## Installation
 
+### NPM
+
 You can install the CLI using npm:
 
 ```bash
 npm install -g @tim-smart/actualbudget-sync
 ```
+
+> [!NOTE]  
+> If the installation fails, check that the prerequisites specified in the
+[node-gyp](https://github.com/nodejs/node-gyp?tab=readme-ov-file#installation) 
+transitive dependency have been met. In general you'll need to have installed 
+Python and C++ build tools specific to your operating system.
+
 
 Here is a quick example of how to use the CLI:
 
@@ -41,6 +50,12 @@ actualsync --bank akahu \
   --accounts 'actual-account-id=bank-account-id' \
   --accounts 'actual-account-id2=bank-account-id2'
 ```
+
+> [!IMPORTANT]  
+> The IDs used above are not the names of the accounts. The easiest way to find these IDs is to inspect the URL when viewing the account in question in Actual or Akahu.
+>
+> ![image](https://github.com/user-attachments/assets/55faf4d6-a3dd-402f-9449-9fffd4e5abb9)
+> ![image](https://github.com/user-attachments/assets/68c90f2c-92ee-40be-bdc2-ceed2acf8c22)
 
 ### Docker
 
