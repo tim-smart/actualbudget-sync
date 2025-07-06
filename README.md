@@ -17,11 +17,19 @@ Features:
 
 ## Installation
 
+### NPM
+
 You can install the CLI using npm:
 
 ```bash
 npm install -g @tim-smart/actualbudget-sync
 ```
+
+> [!NOTE]  
+> If the installation fails, check that the prerequisites specified in the
+[node-gyp](https://github.com/nodejs/node-gyp?tab=readme-ov-file#installation) 
+transitive dependency have been met. In general you'll need to have installed 
+Python and C++ build tools specific to your operating system. 
 
 Here is a quick example of how to use the CLI:
 
