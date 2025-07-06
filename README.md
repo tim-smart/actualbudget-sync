@@ -42,6 +42,9 @@ actualsync --bank akahu \
   --accounts 'actual-account-id2=bank-account-id2'
 ```
 
+> [!IMPORTANT]  
+> The IDs used above are not the names of the accounts. The easiest way to find these IDs is to inspect the URL when viewing the account in question in Actual or Akahu.
+
 ### Docker
 
 You can also use the pre-built docker image: [`timsmart/actualbudget-sync:main`](https://hub.docker.com/r/timsmart/actualbudget-sync).
