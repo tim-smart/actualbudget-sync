@@ -44,7 +44,7 @@ actualsync --bank akahu \
 
 Your sync ID can be found in Actual Budget under Settings > Show Advanced Settings > IDs.
 Your Actual Budget Account IDs can be found from the account URL in the Actual Budget UI (e.g., `https://actual.example.com/accounts/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`).
-Your Akahu Account IDs can be found from the URL on the Akahu web UI (e.g., 'https://my.akahu.nz/connections/conn_id/acc_xxxxxxxxxxxxxxxxxxxxxxxxx').
+Your Akahu Account IDs can be found from the URL on the Akahu web UI (e.g., `https://my.akahu.nz/connections/conn_id/acc_xxxxxxxxxxxxxxxxxxxxxxxxx`).
 
 ### Docker
 
