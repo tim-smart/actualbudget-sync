@@ -29,6 +29,9 @@ export class Actual extends Effect.Service<Actual>()("Actual", {
     )
     const server = yield* Config.url("server")
     const password = yield* Config.redacted("password")
+    const encryptionPassword = yield* Config.redacted(
+      "encryptionPassword",
+    ).pipe(Config.withDefault(undefined))
     const syncId = yield* Config.string("syncId")
 
     if (!server.pathname.endsWith("/")) {
@@ -96,7 +99,14 @@ export class Actual extends Effect.Service<Actual>()("Actual", {
 
     const sync = Effect.promise(() => api.sync())
 
-    yield* use((_) => _.downloadBudget(syncId))
+    yield* use((_) =>
+      _.downloadBudget(
+        syncId,
+        encryptionPassword
+          ? { password: Redacted.value(encryptionPassword) }
+          : {},
+      ),
+    )
     yield* Effect.addFinalizer(() => sync)
     yield* sync
 

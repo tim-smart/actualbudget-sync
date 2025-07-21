@@ -32,6 +32,8 @@ export ACTUAL_SYNC_ID=xxx
 export ACTUAL_PASSWORD=xxx
 # Where to store the sync data. It defaults to ./data
 export ACTUAL_DATA=/data
+# If you have an encrypted database, set the encryption password
+export ACTUAL_ENCRYPTION_PASSWORD=xxx
 
 # Set the environment variables for the bank you want to sync with
 export AKAHU_APP_TOKEN=xxx
