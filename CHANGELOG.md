@@ -1,5 +1,11 @@
 # @tim-smart/actualbudget-sync
 
+## 0.3.3
+
+### Patch Changes
+
+- [`471d896`](https://github.com/tim-smart/actualbudget-sync/commit/471d89626b36e40635cd1c5d5e35d5330712137d) Thanks [@tim-smart](https://github.com/tim-smart)! - add encryption password env var
+
 ## 0.3.2
 
 ### Patch Changes
