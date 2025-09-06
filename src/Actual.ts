@@ -5,10 +5,10 @@ import { Array, Config, Data, Effect, Redacted, Schema } from "effect"
 import * as Api from "@actual-app/api"
 import * as ApiPackage from "@actual-app/api/package.json"
 import { configProviderNested } from "./internal/utils.js"
-import { HttpClient, HttpClientResponse, Path } from "@effect/platform"
+import { HttpClient, HttpClientResponse } from "@effect/platform"
 import { Npm } from "./Npm.js"
 import { NodeHttpClient } from "@effect/platform-node"
-import { TransactionEntity } from "@actual-app/api/@types/loot-core/types/models/transaction.js"
+import { TransactionEntity } from "@actual-app/api/@types/loot-core/src/types/models/transaction.js"
 
 export type Query = ReturnType<typeof Api.q>
 
@@ -19,7 +19,6 @@ export class ActualError extends Data.TaggedError("ActualError")<{
 export class Actual extends Effect.Service<Actual>()("Actual", {
   dependencies: [NodeHttpClient.layerUndici, Npm.Default],
   scoped: Effect.gen(function* () {
-    const path = yield* Path.Path
     const httpClient = (yield* HttpClient.HttpClient).pipe(
       HttpClient.filterStatusOk,
     )
@@ -111,7 +110,7 @@ export class Actual extends Effect.Service<Actual>()("Actual", {
     yield* sync
 
     const query = <A>(f: (q: (typeof Api)["q"]) => Query) =>
-      use(({ runQuery, q }) => runQuery(f(q))).pipe(
+      use(({ aqlQuery, q }) => aqlQuery(f(q))).pipe(
         Effect.map((result: any) => result.data as ReadonlyArray<A>),
       )
 

@@ -7,7 +7,7 @@ import { Actual, ActualError } from "./Actual.js"
 import {
   APICategoryEntity,
   APIPayeeEntity,
-} from "@actual-app/api/@types/loot-core/server/api-models.js"
+} from "@actual-app/api/@types/loot-core/src/server/api-models.js"
 
 const bigDecimal100 = BigDecimal.unsafeFromNumber(100)
 const amountToInt = (amount: BigDecimal.BigDecimal) =>
@@ -72,6 +72,7 @@ export const runCollect = Effect.fnUntraced(function* (options: {
           ids.push(imported_id)
 
           return {
+            account: actualAccountId,
             imported_id,
             date: DateTime.formatIsoDate(transaction.dateTime),
             ...(transferPayee
