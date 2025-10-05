@@ -1,4 +1,4 @@
-import { BigDecimal, DateTime, Effect, Layer, Stream } from "effect"
+import { BigDecimal, DateTime, Effect, Layer } from "effect"
 import {
   AccountId,
   Akahu,
@@ -7,34 +7,34 @@ import {
   PendingTransaction,
   Transaction,
   UserId,
-} from "./Akahu"
+} from "./Akahu.ts"
 import { assert, it } from "@effect/vitest"
-import { runTest } from "../Sync"
+import { runTest } from "../Sync.ts"
+import { Stream } from "effect/stream"
 
-const AkahuTest = Layer.succeed(
-  Akahu,
-  new Akahu({
+const AkahuTest = Layer.succeed(Akahu)(
+  Akahu.of({
     lastRefreshed: DateTime.now,
     refresh: Effect.void,
     transactions: (accountId: string) =>
       accountId === "checking"
         ? Stream.make(
             new PendingTransaction({
-              _user: UserId.make("1"),
-              _account: AccountId.make("1"),
-              _connection: ConnectionId.make("1"),
-              date: DateTime.unsafeMake("2021-01-01T00:00:00Z"),
+              _user: UserId.makeUnsafe("1"),
+              _account: AccountId.makeUnsafe("1"),
+              _connection: ConnectionId.makeUnsafe("1"),
+              date: DateTime.makeUnsafe("2021-01-01T00:00:00Z"),
               description: "Pending transaction",
-              amount: BigDecimal.unsafeFromString("100.50"),
+              amount: BigDecimal.fromStringUnsafe("100.50"),
             }),
             new Transaction({
               _id: "1",
-              _user: UserId.make("1"),
-              _account: AccountId.make("1"),
-              _connection: ConnectionId.make("1"),
-              date: DateTime.unsafeMake("2021-01-02T00:00:00Z"),
+              _user: UserId.makeUnsafe("1"),
+              _account: AccountId.makeUnsafe("1"),
+              _connection: ConnectionId.makeUnsafe("1"),
+              date: DateTime.makeUnsafe("2021-01-02T00:00:00Z"),
               description: "Transaction",
-              amount: BigDecimal.unsafeFromString("200.50"),
+              amount: BigDecimal.fromStringUnsafe("200.50"),
             }),
           )
         : Stream.empty,

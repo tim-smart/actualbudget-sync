@@ -2,6 +2,7 @@
   "name": "@tim-smart/actualbudget-sync",
   "version": "0.3.3",
   "description": "CLI for syncing banks with Actual Budget",
+  "type": "module",
   "publishConfig": {
     "access": "public",
     "directory": "dist"
@@ -27,36 +28,35 @@
   "license": "MIT",
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.1",
-    "@changesets/cli": "^2.29.6",
-    "@effect/cli": "^0.69.2",
-    "@effect/language-service": "^0.38.1",
-    "@effect/platform": "^0.90.7",
-    "@effect/platform-node": "^0.96.1",
-    "@effect/vitest": "^0.25.1",
-    "@types/node": "^24.3.1",
-    "effect": "^3.17.13",
+    "@changesets/cli": "^2.29.7",
+    "@effect/language-service": "^0.41.1",
+    "@effect/platform-node": "https://pkg.pr.new/Effect-TS/effect-smol/@effect/platform-node@aced938",
+    "@effect/vitest": "https://pkg.pr.new/Effect-TS/effect-smol/@effect/vitest@aced938",
+    "@types/node": "^24.6.2",
+    "effect": "https://pkg.pr.new/Effect-TS/effect-smol/effect@aced938",
     "glob": "^11.0.3",
     "prettier": "^3.6.2",
     "rimraf": "^6.0.1",
-    "tar": "^7.4.3",
+    "tar": "7.4.3",
     "tsup": "^8.5.0",
-    "tsx": "^4.20.5",
-    "typescript": "^5.9.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "@actual-app/api": "^25.9.0",
+    "@actual-app/api": "25.9.0",
     "@actual-app/crdt": "^2.1.0",
     "better-sqlite3": "^12.2.0",
     "compare-versions": "^6.1.1",
     "google-protobuf": "^3.12.0-rc.1",
     "node-fetch": "^3.3.2",
-    "playwright": "^1.55.0",
+    "playwright": "^1.55.1",
     "uuid": "^12.0.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
-      "better-sqlite3"
+      "better-sqlite3",
+      "esbuild"
     ]
   }
 }
