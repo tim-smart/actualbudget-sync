@@ -1,76 +1,72 @@
-import { CliConfig, Command, Options } from "@effect/cli"
-import { Effect, Layer, Struct, Option } from "effect"
-import { NodeContext, NodeRuntime } from "@effect/platform-node"
-import * as Sync from "./Sync.js"
-import { Actual } from "./Actual.js"
-import { AkahuLive } from "./Bank/Akahu.js"
-import { UpBankLive } from "./Bank/Up.js"
+import { Command, Flag } from "effect/unstable/cli"
+import { Effect, Layer } from "effect"
+import { NodeRuntime, NodeServices } from "@effect/platform-node"
+import * as Sync from "./Sync.ts"
+import { Actual } from "./Actual.ts"
+import { AkahuLive } from "./Bank/Akahu.ts"
+import { UpBankLive } from "./Bank/Up.ts"
+import { Option, Struct } from "effect/data"
 
 const banks = {
   akahu: AkahuLive,
   up: UpBankLive,
 } as const
 
-const bank = Options.choice("bank", Struct.keys(banks)).pipe(
-  Options.withDescription("Which bank to use"),
+const bank = Flag.choice("bank", Struct.keys(banks)).pipe(
+  Flag.withDescription("Which bank to use"),
 )
 
-const accounts = Options.keyValueMap("accounts").pipe(
-  Options.withDescription(
+const accounts = Flag.keyValueMap("accounts").pipe(
+  Flag.withDescription(
     "Accounts to sync, in the format 'actual-account-id=bank-account-id'",
   ),
 )
 
-const categorize = Options.boolean("categorize").pipe(
-  Options.withAlias("c"),
-  Options.withDescription(
+const categorize = Flag.boolean("categorize").pipe(
+  Flag.withAlias("c"),
+  Flag.withDescription(
     "If the bank supports categorization, try to categorize transactions",
   ),
 )
 
-const categories = Options.keyValueMap("categories").pipe(
-  Options.optional,
-  Options.withDescription(
+const categories = Flag.keyValueMap("categories").pipe(
+  Flag.optional,
+  Flag.withDescription(
     "Requires --categorize to have any effect. Maps the banks values to actual values with the format 'bank-category=actual-category'",
   ),
 )
 
-const run = Command.make("actualsync", {
+const actualsync = Command.make("actualsync", {
   bank,
   accounts,
   categorize,
   categories,
 }).pipe(
-  Command.withHandler(({ accounts, categorize, categories }) =>
+  Command.withHandler(({ accounts, categorize, categories, bank }) =>
     Sync.run({
-      accounts: [...accounts].map(([actualAccountId, bankAccountId]) => ({
-        actualAccountId,
-        bankAccountId,
-      })),
+      accounts: Object.entries(accounts).map(
+        ([actualAccountId, bankAccountId]) => ({
+          actualAccountId,
+          bankAccountId,
+        }),
+      ),
       categorize,
       categoryMapping: Option.getOrUndefined(
         Option.map(categories, (categoriesOption) =>
-          [...categoriesOption].map(([bankCategory, actualCategory]) => ({
-            bankCategory,
-            actualCategory,
-          })),
+          Object.entries(categoriesOption).map(
+            ([bankCategory, actualCategory]) => ({
+              bankCategory,
+              actualCategory,
+            }),
+          ),
         ),
       ),
-    }),
+    }).pipe(Effect.provide(Layer.mergeAll(banks[bank], Actual.layer))),
   ),
-  Command.provide(({ bank }) => Layer.mergeAll(banks[bank], Actual.Default)),
-  Command.run({
-    name: "actualsync",
-    version: "0.0.1",
-  }),
 )
 
-run(process.argv).pipe(
-  Effect.provide([
-    NodeContext.layer,
-    CliConfig.layer({
-      showBuiltIns: false,
-    }),
-  ]),
-  NodeRuntime.runMain,
-)
+const run = Command.runWithArgs(actualsync, {
+  version: "0.0.1",
+})
+
+run(process.argv).pipe(Effect.provide(NodeServices.layer), NodeRuntime.runMain)

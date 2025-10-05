@@ -1,20 +1,19 @@
 /**
  * @since 1.0.0
  */
-import { Config, Context, Data, Effect, Layer } from "effect"
+import { Config, Effect, Layer, ServiceMap } from "effect"
+import { Data } from "effect/data"
 import * as Api from "playwright"
 
 export class PlaywrightError extends Data.TaggedError("PlaywrightError")<{
   readonly cause: unknown
 }> {}
 
-export class Browser extends Context.Tag("Playwright/Browser")<
-  Browser,
-  Api.Browser
->() {
+export class Browser extends ServiceMap.Key<Browser, Api.Browser>()(
+  "Playwright/Browser",
+) {
   static readonly layerChromium = (options?: Api.LaunchOptions) =>
-    Layer.scoped(
-      this,
+    Layer.effect(this)(
       Effect.acquireRelease(
         Effect.tryPromise({
           try: () => Api.chromium.launch(options),
@@ -24,11 +23,11 @@ export class Browser extends Context.Tag("Playwright/Browser")<
       ),
     )
 
-  static Live = Layer.unwrapEffect(
+  static Live = Layer.unwrap(
     Effect.gen(this, function* () {
       const isProd = yield* Config.string("NODE_ENV").pipe(
         Config.map((env) => env === "production"),
-        Config.withDefault(false),
+        Config.withDefault(() => false),
       )
 
       return this.layerChromium({
@@ -39,14 +38,13 @@ export class Browser extends Context.Tag("Playwright/Browser")<
   )
 }
 
-export class BrowserContext extends Context.Tag("Playwright/BrowserContext")<
+export class BrowserContext extends ServiceMap.Key<
   BrowserContext,
   Api.BrowserContext
->() {
+>()("Playwright/BrowserContext") {
   static layer = (options?: Api.BrowserContextOptions) =>
-    Layer.scoped(
-      this,
-      Effect.flatMap(Browser, (browser) =>
+    Layer.effect(this)(
+      Effect.flatMap(Browser.asEffect(), (browser) =>
         Effect.acquireRelease(
           Effect.tryPromise({
             try: () => browser.newContext(options),
@@ -60,10 +58,9 @@ export class BrowserContext extends Context.Tag("Playwright/BrowserContext")<
   static Live = this.layer().pipe(Layer.provide(Browser.Live))
 }
 
-export class Page extends Context.Tag("Playwright/Page")<Page, Api.Page>() {
-  static layer = Layer.scoped(
-    this,
-    Effect.flatMap(BrowserContext, (context) =>
+export class Page extends ServiceMap.Key<Page, Api.Page>()("Playwright/Page") {
+  static layer = Layer.effect(this)(
+    Effect.flatMap(BrowserContext.asEffect(), (context) =>
       Effect.acquireRelease(
         Effect.tryPromise({
           try: () => context.newPage(),

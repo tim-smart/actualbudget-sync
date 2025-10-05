@@ -1,17 +1,18 @@
 /**
  * @since 1.0.0
  */
-import { Array, BigDecimal, DateTime, Effect, Fiber, pipe } from "effect"
-import { AccountTransaction, AccountTransactionOrder, Bank } from "./Bank.js"
-import { Actual, ActualError } from "./Actual.js"
+import { BigDecimal, DateTime, Effect, Fiber, pipe } from "effect"
+import { AccountTransaction, AccountTransactionOrder, Bank } from "./Bank.ts"
+import { Actual, ActualError } from "./Actual.ts"
 import {
   APICategoryEntity,
   APIPayeeEntity,
 } from "@actual-app/api/@types/loot-core/src/server/api-models.js"
+import { Array } from "effect/collections"
 
-const bigDecimal100 = BigDecimal.unsafeFromNumber(100)
+const bigDecimal100 = BigDecimal.fromNumberUnsafe(100)
 const amountToInt = (amount: BigDecimal.BigDecimal) =>
-  amount.pipe(BigDecimal.multiply(bigDecimal100), BigDecimal.unsafeToNumber)
+  amount.pipe(BigDecimal.multiply(bigDecimal100), BigDecimal.toNumberUnsafe)
 
 export const runCollect = Effect.fnUntraced(function* (options: {
   readonly accounts: ReadonlyArray<{
@@ -122,7 +123,7 @@ export const run = Effect.fnUntraced(function* (options: {
   for (const { transactions, ids, actualAccountId } of results) {
     const alreadyImported = yield* actual.findImported(ids)
     let toImport: typeof transactions = []
-    const updates = Array.empty<Fiber.RuntimeFiber<unknown, ActualError>>()
+    const updates = Array.empty<Fiber.Fiber<unknown, ActualError>>()
     for (const transaction of transactions) {
       const existing = alreadyImported.get(transaction.imported_id)
       if (!existing) {

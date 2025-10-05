@@ -1,31 +1,31 @@
 import {
-  Chunk,
   Config,
   DateTime,
   Effect,
   flow,
   identity,
   Layer,
-  Option,
   pipe,
-  Redacted,
   Schedule,
-  Schema,
-  Stream,
+  ServiceMap,
 } from "effect"
-import { configProviderNested } from "../internal/utils.js"
+import { AccountTransaction, Bank, BankError } from "../Bank.ts"
 import {
   HttpClient,
   HttpClientRequest,
   HttpClientResponse,
-} from "@effect/platform"
+} from "effect/unstable/http"
+import { Option, Redacted } from "effect/data"
+import { Getter, Schema } from "effect/schema"
+import { Stream } from "effect/stream"
+import { BigDecimalFromNumber } from "../Schema.ts"
+import { Array } from "effect/collections"
 import { NodeHttpClient } from "@effect/platform-node"
-import { AccountTransaction, Bank, BankError } from "../Bank.js"
 
-export class Akahu extends Effect.Service<Akahu>()("Bank/Akahu", {
-  effect: Effect.gen(function* () {
-    const appToken = yield* Config.redacted("appToken")
-    const userToken = yield* Config.redacted("userToken")
+export class Akahu extends ServiceMap.Key<Akahu>()("Bank/Akahu", {
+  make: Effect.gen(function* () {
+    const appToken = yield* Config.redacted("AKAHU_APP_TOKEN")
+    const userToken = yield* Config.redacted("AKAHU_USER_TOKEN")
     const client = (yield* HttpClient.HttpClient).pipe(
       HttpClient.mapRequest(
         flow(
@@ -43,10 +43,10 @@ export class Akahu extends Effect.Service<Akahu>()("Bank/Akahu", {
       HttpClient.transformResponse(Effect.orDie),
     )
 
-    const stream = <S extends Schema.Schema.Any>(schema: S) => {
+    const stream = <S extends Schema.Top>(schema: S) => {
       const Page = PaginatedResponse(schema)
       return (request: HttpClientRequest.HttpClientRequest) => {
-        const getPage = (cursor: string | null) =>
+        const getPage = (cursor: string) =>
           pipe(
             request,
             cursor ? HttpClientRequest.setUrlParam("cursor", cursor) : identity,
@@ -55,11 +55,11 @@ export class Akahu extends Effect.Service<Akahu>()("Bank/Akahu", {
             Effect.orDie,
           )
 
-        return Stream.paginateChunkEffect(null, (cursor: string | null) =>
+        return Stream.paginateArrayEffect("", (cursor: string) =>
           getPage(cursor).pipe(
             Effect.map(
               ({ items, cursor }) =>
-                [items, Option.fromNullable(cursor?.next)] as const,
+                [items, Option.fromNullishOr(cursor?.next)] as const,
             ),
           ),
         )
@@ -73,7 +73,7 @@ export class Akahu extends Effect.Service<Akahu>()("Bank/Akahu", {
     const lastRefreshed = accounts.pipe(
       Stream.map((account) => account.refreshed.transactions),
       Stream.runHead,
-      Effect.flatten,
+      Effect.flatMap(Effect.fromYieldable),
       Effect.orDie,
     )
 
@@ -105,13 +105,18 @@ export class Akahu extends Effect.Service<Akahu>()("Bank/Akahu", {
       refresh,
       lastRefreshed,
     } as const
-  }).pipe(Effect.withConfigProvider(configProviderNested("akahu"))),
-  dependencies: [NodeHttpClient.layerUndici],
-}) {}
+  }),
+}) {
+  static layer = Layer.effect(this)(this.make).pipe(
+    Layer.provide(NodeHttpClient.layerUndici),
+  )
+}
 
 export const AkahuLayer = Effect.gen(function* () {
   const akahu = yield* Akahu
-  const timeZone = yield* DateTime.zoneMakeNamed("Pacific/Auckland")
+  const timeZone = yield* Effect.fromNullishOr(
+    DateTime.zoneMakeNamed("Pacific/Auckland"),
+  )
 
   yield* Effect.log("Refreshing Akahu transactions")
   const beforeRefresh = yield* akahu.lastRefreshed
@@ -125,30 +130,28 @@ export const AkahuLayer = Effect.gen(function* () {
             reason: "Unknown",
             bank: "Akahu",
             cause: new Error("Refresh did not update transactions"),
-          }),
+          }).asEffect(),
     ),
     Effect.retry({
       times: 5,
       schedule: Schedule.exponential(500),
     }),
-    Effect.catchAllCause(Effect.log),
+    Effect.catchCause(Effect.log),
   )
 
   return Bank.of({
     exportAccount: (accountId: string) =>
-      akahu.transactions(accountId).pipe(
+      pipe(
+        akahu.transactions(accountId),
         Stream.runCollect,
-        Effect.map((chunk) =>
-          chunk.pipe(
-            Chunk.map((t) => t.accountTransaction(timeZone)),
-            Chunk.toReadonlyArray,
-          ),
-        ),
+        Effect.map(Array.map((t) => t.accountTransaction(timeZone))),
       ),
   })
-}).pipe(Effect.annotateLogs({ service: "Bank/Akahu" }), Layer.effect(Bank))
+}).pipe(Effect.annotateLogs({ service: "Bank/Akahu" }), (_) =>
+  Layer.effect(Bank)(_),
+)
 
-export const AkahuLive = AkahuLayer.pipe(Layer.provide(Akahu.Default))
+export const AkahuLive = AkahuLayer.pipe(Layer.provide(Akahu.layer))
 
 export class Merchant extends Schema.Class<Merchant>("Merchant")({
   name: Schema.String,
@@ -170,7 +173,7 @@ export class Transaction extends Schema.Class<Transaction>("Transaction")({
   _connection: ConnectionId,
   date: Schema.DateTimeUtc,
   description: Schema.String,
-  amount: Schema.BigDecimalFromNumber,
+  amount: BigDecimalFromNumber,
   merchant: Schema.optional(Merchant),
   category: Schema.optional(Category),
 }) {
@@ -198,7 +201,7 @@ export class PendingTransaction extends Schema.Class<PendingTransaction>(
   _connection: ConnectionId,
   date: Schema.DateTimeUtc,
   description: Schema.String,
-  amount: Schema.BigDecimalFromNumber,
+  amount: BigDecimalFromNumber,
 }) {
   accountTransaction(timeZone: DateTime.TimeZone): AccountTransaction {
     return {
@@ -210,9 +213,12 @@ export class PendingTransaction extends Schema.Class<PendingTransaction>(
   }
 }
 
-const OptionalDateTimeUtc = Schema.optionalWith(Schema.DateTimeUtc, {
-  default: DateTime.unsafeNow,
-})
+const OptionalDateTimeUtc = Schema.optional(Schema.DateTimeUtc).pipe(
+  Schema.decodeTo(Schema.DateTimeUtc, {
+    decode: Getter.withDefault(DateTime.nowUnsafe),
+    encode: Getter.passthrough(),
+  }),
+)
 
 export class Refreshed extends Schema.Class<Refreshed>("Refreshed")({
   meta: Schema.DateTimeUtc,
@@ -226,9 +232,9 @@ export class Account extends Schema.Class<Account>("AccountElement")({
   refreshed: Refreshed,
 }) {}
 
-export const PaginatedResponse = <S extends Schema.Schema.Any>(schema: S) =>
+export const PaginatedResponse = <S extends Schema.Top>(schema: S) =>
   Schema.Struct({
     success: Schema.Boolean,
-    items: Schema.Chunk(schema),
+    items: Schema.Array(schema),
     cursor: Schema.optional(Cursor),
   })

@@ -1,14 +1,16 @@
 /**
  * @since 1.0.0
  */
-import { Array, Config, Data, Effect, Redacted, Schema } from "effect"
+import { Config, Effect, Layer, ServiceMap } from "effect"
 import * as Api from "@actual-app/api"
-import * as ApiPackage from "@actual-app/api/package.json"
-import { configProviderNested } from "./internal/utils.js"
-import { HttpClient, HttpClientResponse } from "@effect/platform"
-import { Npm } from "./Npm.js"
+import ApiPackage from "@actual-app/api/package.json" with { type: "json" }
+import { Npm } from "./Npm.ts"
 import { NodeHttpClient } from "@effect/platform-node"
 import { TransactionEntity } from "@actual-app/api/@types/loot-core/src/types/models/transaction.js"
+import { Data, Redacted } from "effect/data"
+import { HttpClient, HttpClientResponse } from "effect/unstable/http"
+import { Schema } from "effect/schema"
+import { Array } from "effect/collections"
 
 export type Query = ReturnType<typeof Api.q>
 
@@ -16,22 +18,21 @@ export class ActualError extends Data.TaggedError("ActualError")<{
   readonly cause: unknown
 }> {}
 
-export class Actual extends Effect.Service<Actual>()("Actual", {
-  dependencies: [NodeHttpClient.layerUndici, Npm.Default],
-  scoped: Effect.gen(function* () {
+export class Actual extends ServiceMap.Key<Actual>()("Actual", {
+  make: Effect.gen(function* () {
     const httpClient = (yield* HttpClient.HttpClient).pipe(
       HttpClient.filterStatusOk,
     )
     const npm = yield* Npm
-    const dataDir = yield* Config.string("data").pipe(
-      Config.withDefault("data"),
+    const dataDir = yield* Config.string("ACTUAL_DATA").pipe(
+      Config.withDefault(() => "data"),
     )
-    const server = yield* Config.url("server")
-    const password = yield* Config.redacted("password")
+    const server = yield* Config.url("ACTUAL_SERVER")
+    const password = yield* Config.redacted("ACTUAL_PASSWORD")
     const encryptionPassword = yield* Config.redacted(
       "encryptionPassword",
-    ).pipe(Config.withDefault(undefined))
-    const syncId = yield* Config.string("syncId")
+    ).pipe(Config.withDefault(() => undefined))
+    const syncId = yield* Config.string("ACTUAL_SYNC_ID")
 
     if (!server.pathname.endsWith("/")) {
       server.pathname += "/"
@@ -69,7 +70,7 @@ export class Actual extends Effect.Service<Actual>()("Actual", {
       })
       return yield* Effect.promise(() => import(name) as Promise<typeof Api>)
     }).pipe(
-      Effect.tapErrorCause(Effect.logWarning),
+      Effect.tapCause(Effect.logWarning),
       Effect.orElseSucceed(() => Api),
       Effect.annotateLogs({
         module: "Actual",
@@ -137,5 +138,9 @@ export class Actual extends Effect.Service<Actual>()("Actual", {
           )
 
     return { use, query, findImported } as const
-  }).pipe(Effect.withConfigProvider(configProviderNested("actual"))),
-}) {}
+  }),
+}) {
+  static layer = Layer.effect(this)(this.make).pipe(
+    Layer.provide([NodeHttpClient.layerUndici, Npm.layer]),
+  )
+}

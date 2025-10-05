@@ -1,26 +1,22 @@
 import {
-  FileSystem,
-  HttpClient,
-  HttpClientRequest,
-  HttpClientResponse,
-  Path,
-} from "@effect/platform"
-import {
   NodeFileSystem,
   NodeHttpClient,
   NodePath,
   NodeSink,
 } from "@effect/platform-node"
-import { Data, Effect, Stream } from "effect"
+import { Effect, Layer, ServiceMap } from "effect"
+import { Data } from "effect/data"
+import { FileSystem, Path } from "effect/platform"
+import { Stream } from "effect/stream"
+import {
+  HttpClient,
+  HttpClientRequest,
+  HttpClientResponse,
+} from "effect/unstable/http"
 import * as Tar from "tar"
 
-export class Npm extends Effect.Service<Npm>()("Npm", {
-  dependencies: [
-    NodeHttpClient.layerUndici,
-    NodeFileSystem.layer,
-    NodePath.layer,
-  ],
-  effect: Effect.gen(function* () {
+export class Npm extends ServiceMap.Key<Npm>()("Npm", {
+  make: Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem
     const path = yield* Path.Path
     const client = (yield* HttpClient.HttpClient).pipe(
@@ -35,10 +31,11 @@ export class Npm extends Effect.Service<Npm>()("Npm", {
       return client.get(`/${packageName}/-/${lastPart}-${version}.tgz`).pipe(
         HttpClientResponse.stream,
         Stream.mapError((cause) => new NpmError({ cause, method: "tarball" })),
+        Stream.tap((_) => Effect.log(_.length)),
       )
     }
 
-    const install = Effect.fn("Npm.install")(function* (options: {
+    const install = Effect.fn(function* (options: {
       readonly packageName: string
       readonly version: string
     }) {
@@ -49,21 +46,29 @@ export class Npm extends Effect.Service<Npm>()("Npm", {
       }
 
       yield* Effect.orDie(fs.makeDirectory(dir, { recursive: true }))
-      const sink = NodeSink.fromWritable(
-        () =>
+      const sink = NodeSink.fromWritable({
+        evaluate: () =>
           Tar.x({
             C: dir,
             strip: 1,
           }),
-        (cause) => new NpmError({ cause, method: "install" }),
-      )
+        onError: (cause) => new NpmError({ cause, method: "install" }),
+      })
       yield* Stream.run(tarball(options.packageName, options.version), sink)
       return directory
     })
 
-    return { install } as const
+    return { install, tarball } as const
   }),
-}) {}
+}) {
+  static layer = Layer.effect(this)(this.make).pipe(
+    Layer.provide([
+      NodeHttpClient.layerUndici,
+      NodeFileSystem.layer,
+      NodePath.layer,
+    ]),
+  )
+}
 
 export class NpmError extends Data.TaggedError("NpmError")<{
   method: string

@@ -1,32 +1,30 @@
 import {
   BigDecimal,
-  Chunk,
   Config,
   DateTime,
   Effect,
   flow,
   identity,
   Layer,
-  Option,
   pipe,
-  Redacted,
   Schedule,
-  Schema,
-  Stream,
 } from "effect"
-import { configProviderNested } from "../internal/utils.js"
+import { NodeHttpClient } from "@effect/platform-node"
+import { AccountTransaction, Bank } from "../Bank.ts"
 import {
   HttpClient,
   HttpClientRequest,
   HttpClientResponse,
-} from "@effect/platform"
-import { NodeHttpClient } from "@effect/platform-node"
-import { AccountTransaction, Bank } from "../Bank.js"
+} from "effect/unstable/http"
+import { Option, Redacted } from "effect/data"
+import { Schema } from "effect/schema"
+import { Stream } from "effect/stream"
+import { BigDecimalFromNumber, DateTimeZonedFromString } from "../Schema.ts"
 
 const URL = "https://api.up.com.au/api/v1"
 
 export const UpBankLive = Effect.gen(function* () {
-  const userToken = yield* Config.redacted("userToken")
+  const userToken = yield* Config.redacted("UP_USER_TOKEN")
   const client = (yield* HttpClient.HttpClient).pipe(
     HttpClient.mapRequest(
       flow(
@@ -43,7 +41,7 @@ export const UpBankLive = Effect.gen(function* () {
     HttpClient.transformResponse(Effect.orDie),
   )
 
-  const stream = <S extends Schema.Schema.Any>(schema: S) => {
+  const stream = <S extends Schema.Top>(schema: S) => {
     const Page = PaginatedResponse(schema)
     return (request: HttpClientRequest.HttpClientRequest) => {
       const getPage = (cursor: string | null) =>
@@ -55,11 +53,11 @@ export const UpBankLive = Effect.gen(function* () {
           Effect.orDie,
         )
 
-      return Stream.paginateChunkEffect(null, (cursor: string | null) =>
+      return Stream.paginateArrayEffect(null, (cursor: string | null) =>
         getPage(cursor).pipe(
           Effect.map(
             ({ data, links }) =>
-              [data, Option.fromNullable(links.next)] as const,
+              [data, Option.fromNullishOr(links.next)] as const,
           ),
         ),
       )
@@ -76,35 +74,29 @@ export const UpBankLive = Effect.gen(function* () {
         urlParams: { "filter[since]": DateTime.formatIso(lastMonth) },
       }),
     ).pipe(Stream.runCollect)
-    return last30Days.pipe(
-      Chunk.map((t) => t.accountTransaction()),
-      Chunk.toReadonlyArray,
-    )
+    return last30Days.map((t) => t.accountTransaction())
   })
 
   return Bank.of({
-    exportAccount(accountId) {
-      return accountTransactions(accountId)
-    },
+    exportAccount: accountTransactions,
   })
 }).pipe(
-  Effect.withConfigProvider(configProviderNested("up")),
   Effect.annotateLogs({ service: "Bank/Up" }),
-  Layer.effect(Bank),
+  (_) => Layer.effect(Bank)(_),
   Layer.provide(NodeHttpClient.layerUndici),
 )
 
 class MoneyObject extends Schema.Class<MoneyObject>("MoneyObject")({
-  valueInBaseUnits: Schema.BigDecimalFromNumber,
+  valueInBaseUnits: BigDecimalFromNumber,
 }) {}
 
 class Transaction extends Schema.Class<Transaction>("Transaction")({
   type: Schema.Literal("transactions"),
   attributes: Schema.Struct({
-    status: Schema.Literal("HELD", "SETTLED"),
+    status: Schema.Literals(["HELD", "SETTLED"]),
     description: Schema.String,
     amount: MoneyObject,
-    createdAt: Schema.DateTimeZoned,
+    createdAt: DateTimeZonedFromString,
     note: Schema.NullOr(Schema.Struct({ text: Schema.String })),
   }),
   relationships: Schema.Struct({
@@ -129,9 +121,9 @@ class Transaction extends Schema.Class<Transaction>("Transaction")({
   accountTransaction(): AccountTransaction {
     return {
       dateTime: this.attributes.createdAt,
-      amount: BigDecimal.unsafeDivide(
+      amount: BigDecimal.divideUnsafe(
         this.attributes.amount.valueInBaseUnits,
-        BigDecimal.unsafeFromNumber(100),
+        BigDecimal.fromNumberUnsafe(100),
       ),
       payee: this.attributes.description,
       notes: this.attributes.note?.text,
@@ -147,8 +139,8 @@ class Cursor extends Schema.Class<Cursor>("Cursor")({
   next: Schema.NullOr(Schema.String),
 }) {}
 
-const PaginatedResponse = <S extends Schema.Schema.Any>(schema: S) =>
+const PaginatedResponse = <S extends Schema.Top>(schema: S) =>
   Schema.Struct({
-    data: Schema.Chunk(schema),
+    data: Schema.Array(schema),
     links: Cursor,
   })
