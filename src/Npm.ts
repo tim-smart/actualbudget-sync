@@ -31,7 +31,6 @@ export class Npm extends ServiceMap.Key<Npm>()("Npm", {
       return client.get(`/${packageName}/-/${lastPart}-${version}.tgz`).pipe(
         HttpClientResponse.stream,
         Stream.mapError((cause) => new NpmError({ cause, method: "tarball" })),
-        Stream.tap((_) => Effect.log(_.length)),
       )
     }
 
