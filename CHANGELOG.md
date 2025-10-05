@@ -1,5 +1,15 @@
 # @tim-smart/actualbudget-sync
 
+## 0.4.0
+
+### Minor Changes
+
+- [#29](https://github.com/tim-smart/actualbudget-sync/pull/29) [`92a2162`](https://github.com/tim-smart/actualbudget-sync/commit/92a21620321662af0bed2812be1b5d13361cd9af) Thanks [@tim-smart](https://github.com/tim-smart)! - update to effect 4
+
+### Patch Changes
+
+- [`e7c2063`](https://github.com/tim-smart/actualbudget-sync/commit/e7c20630e51287e122bb46c5d127d69b5ddb55ab) Thanks [@tim-smart](https://github.com/tim-smart)! - update to latest dependencies
+
 ## 0.3.3
 
 ### Patch Changes
