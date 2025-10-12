@@ -4,7 +4,6 @@ import {
   DateTime,
   Effect,
   flow,
-  identity,
   Layer,
   pipe,
   Schedule,
@@ -19,16 +18,15 @@ import {
 import { Option, Redacted } from "effect/data"
 import { Schema } from "effect/schema"
 import { Stream } from "effect/stream"
-import { BigDecimalFromNumber, DateTimeZonedFromString } from "../Schema.ts"
+import { BigDecimalFromNumber } from "../Schema.ts"
 
-const URL = "https://api.up.com.au/api/v1"
+const baseUrl = "https://api.up.com.au/api/v1"
 
 export const UpBankLive = Effect.gen(function* () {
   const userToken = yield* Config.redacted("UP_USER_TOKEN")
   const client = (yield* HttpClient.HttpClient).pipe(
     HttpClient.mapRequest(
       flow(
-        HttpClientRequest.prependUrl(URL),
         HttpClientRequest.bearerToken(Redacted.value(userToken)),
         HttpClientRequest.acceptJson,
       ),
@@ -44,17 +42,17 @@ export const UpBankLive = Effect.gen(function* () {
   const stream = <S extends Schema.Top>(schema: S) => {
     const Page = PaginatedResponse(schema)
     return (request: HttpClientRequest.HttpClientRequest) => {
-      const getPage = (cursor: string | null) =>
+      const getPage = (url: string) =>
         pipe(
           request,
-          cursor ? HttpClientRequest.setUrl(cursor.split(URL)[1]) : identity,
+          HttpClientRequest.setUrl(url),
           client.execute,
           Effect.flatMap(HttpClientResponse.schemaBodyJson(Page)),
           Effect.orDie,
         )
 
-      return Stream.paginateArrayEffect(null, (cursor: string | null) =>
-        getPage(cursor).pipe(
+      return Stream.paginateArrayEffect(request.url, (url: string) =>
+        getPage(url).pipe(
           Effect.map(
             ({ data, links }) =>
               [data, Option.fromNullishOr(links.next)] as const,
@@ -70,7 +68,7 @@ export const UpBankLive = Effect.gen(function* () {
     const now = yield* DateTime.now
     const lastMonth = now.pipe(DateTime.subtract({ days: 30 }))
     const last30Days = yield* transactions(
-      HttpClientRequest.get(`/accounts/${accountId}/transactions`, {
+      HttpClientRequest.get(`${baseUrl}/accounts/${accountId}/transactions`, {
         urlParams: { "filter[since]": DateTime.formatIso(lastMonth) },
       }),
     ).pipe(Stream.runCollect)
@@ -96,7 +94,7 @@ class Transaction extends Schema.Class<Transaction>("Transaction")({
     status: Schema.Literals(["HELD", "SETTLED"]),
     description: Schema.String,
     amount: MoneyObject,
-    createdAt: DateTimeZonedFromString,
+    createdAt: Schema.DateTimeUtcFromString,
     note: Schema.NullOr(Schema.Struct({ text: Schema.String })),
   }),
   relationships: Schema.Struct({

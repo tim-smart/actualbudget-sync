@@ -8,6 +8,7 @@ import {
   pipe,
   Schedule,
   ServiceMap,
+  BigDecimal,
 } from "effect"
 import { AccountTransaction, Bank, BankError } from "../Bank.ts"
 import {
@@ -15,7 +16,7 @@ import {
   HttpClientRequest,
   HttpClientResponse,
 } from "effect/unstable/http"
-import { Option, Redacted } from "effect/data"
+import { Option, Redacted, Brand } from "effect/data"
 import { Getter, Schema } from "effect/schema"
 import { Stream } from "effect/stream"
 import { BigDecimalFromNumber } from "../Schema.ts"
@@ -114,9 +115,7 @@ export class Akahu extends ServiceMap.Key<Akahu>()("Bank/Akahu", {
 
 export const AkahuLayer = Effect.gen(function* () {
   const akahu = yield* Akahu
-  const timeZone = yield* Effect.fromNullishOr(
-    DateTime.zoneMakeNamed("Pacific/Auckland"),
-  )
+  const timeZone = DateTime.zoneMakeNamedUnsafe("Pacific/Auckland")
 
   yield* Effect.log("Refreshing Akahu transactions")
   const beforeRefresh = yield* akahu.lastRefreshed
@@ -162,7 +161,10 @@ export class Category extends Schema.Class<Category>("Category")({
   name: Schema.String,
 }) {}
 
-export const ConnectionId = Schema.String.pipe(Schema.brand("ConnectionId"))
+export const ConnectionId: Schema.refine<
+  string & Brand.Brand<"ConnectionId">,
+  Schema.String
+> = Schema.String.pipe(Schema.brand("ConnectionId"))
 export const AccountId = Schema.String.pipe(Schema.brand("AccountId"))
 export const UserId = Schema.String.pipe(Schema.brand("UserId"))
 
