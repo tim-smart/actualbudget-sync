@@ -121,6 +121,7 @@ export const run = Effect.fnUntraced(function* (options: {
   })
 
   for (const { transactions, ids, actualAccountId } of results) {
+    console.log("importing", actualAccountId, transactions)
     const alreadyImported = yield* actual.findImported(ids)
     let toImport: typeof transactions = []
     const updates = Array.empty<Fiber.Fiber<unknown, ActualError>>()
