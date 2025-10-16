@@ -9,7 +9,7 @@ export class PlaywrightError extends Data.TaggedError("PlaywrightError")<{
   readonly cause: unknown
 }> {}
 
-export class Browser extends ServiceMap.Key<Browser, Api.Browser>()(
+export class Browser extends ServiceMap.Service<Browser, Api.Browser>()(
   "Playwright/Browser",
 ) {
   static readonly layerChromium = (options?: Api.LaunchOptions) =>
@@ -38,7 +38,7 @@ export class Browser extends ServiceMap.Key<Browser, Api.Browser>()(
   )
 }
 
-export class BrowserContext extends ServiceMap.Key<
+export class BrowserContext extends ServiceMap.Service<
   BrowserContext,
   Api.BrowserContext
 >()("Playwright/BrowserContext") {
@@ -58,7 +58,7 @@ export class BrowserContext extends ServiceMap.Key<
   static Live = this.layer().pipe(Layer.provide(Browser.Live))
 }
 
-export class Page extends ServiceMap.Key<Page, Api.Page>()("Playwright/Page") {
+export class Page extends ServiceMap.Service<Page, Api.Page>()("Playwright/Page") {
   static layer = Layer.effect(this)(
     Effect.flatMap(BrowserContext.asEffect(), (context) =>
       Effect.acquireRelease(

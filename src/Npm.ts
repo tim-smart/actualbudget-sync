@@ -15,7 +15,7 @@ import {
 } from "effect/unstable/http"
 import * as Tar from "tar"
 
-export class Npm extends ServiceMap.Key<Npm>()("Npm", {
+export class Npm extends ServiceMap.Service<Npm>()("Npm", {
   make: Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem
     const path = yield* Path.Path

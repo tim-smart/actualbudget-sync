@@ -22,7 +22,7 @@ import { BigDecimalFromNumber } from "../Schema.ts"
 import { Array } from "effect/collections"
 import { NodeHttpClient } from "@effect/platform-node"
 
-export class Akahu extends ServiceMap.Key<Akahu>()("Bank/Akahu", {
+export class Akahu extends ServiceMap.Service<Akahu>()("Bank/Akahu", {
   make: Effect.gen(function* () {
     const appToken = yield* Config.redacted("AKAHU_APP_TOKEN")
     const userToken = yield* Config.redacted("AKAHU_USER_TOKEN")
@@ -55,7 +55,7 @@ export class Akahu extends ServiceMap.Key<Akahu>()("Bank/Akahu", {
             Effect.orDie,
           )
 
-        return Stream.paginateArrayEffect("", (cursor: string) =>
+        return Stream.paginate("", (cursor: string) =>
           getPage(cursor).pipe(
             Effect.map(
               ({ items, cursor }) =>

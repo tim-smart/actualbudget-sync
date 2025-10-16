@@ -65,8 +65,11 @@ const actualsync = Command.make("actualsync", {
   ),
 )
 
-const run = Command.runWithArgs(actualsync, {
+const run = Command.runWith(actualsync, {
   version: "0.0.1",
 })
 
-run(process.argv).pipe(Effect.provide(NodeServices.layer), NodeRuntime.runMain)
+run(process.argv).pipe(
+  Effect.provide(NodeServices.layer as Layer.Layer<Command.Environment>),
+  NodeRuntime.runMain,
+)

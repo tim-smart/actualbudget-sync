@@ -130,7 +130,7 @@ export const run = Effect.fnUntraced(function* (options: {
         toImport.push(transaction)
       } else if (transaction.cleared && !existing.cleared) {
         updates.push(
-          yield* Effect.fork(
+          yield* Effect.forkChild(
             actual.use((_) =>
               _.updateTransaction(existing.id, {
                 cleared: true,

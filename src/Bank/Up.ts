@@ -51,7 +51,7 @@ export const UpBankLive = Effect.gen(function* () {
           Effect.orDie,
         )
 
-      return Stream.paginateArrayEffect(request.url, (url: string) =>
+      return Stream.paginate(request.url, (url: string) =>
         getPage(url).pipe(
           Effect.map(
             ({ data, links }) =>

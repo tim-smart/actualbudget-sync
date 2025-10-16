@@ -10,7 +10,7 @@ export class BankError extends Data.TaggedError("BankError")<{
   readonly cause?: unknown
 }> {}
 
-export class Bank extends ServiceMap.Key<
+export class Bank extends ServiceMap.Service<
   Bank,
   {
     readonly exportAccount: (

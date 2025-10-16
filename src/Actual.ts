@@ -18,7 +18,7 @@ export class ActualError extends Data.TaggedError("ActualError")<{
   readonly cause: unknown
 }> {}
 
-export class Actual extends ServiceMap.Key<Actual>()("Actual", {
+export class Actual extends ServiceMap.Service<Actual>()("Actual", {
   make: Effect.gen(function* () {
     const httpClient = (yield* HttpClient.HttpClient).pipe(
       HttpClient.filterStatusOk,
