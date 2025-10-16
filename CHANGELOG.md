@@ -1,5 +1,11 @@
 # @tim-smart/actualbudget-sync
 
+## 0.4.2
+
+### Patch Changes
+
+- [`00d9006`](https://github.com/tim-smart/actualbudget-sync/commit/00d90068abb073c1937d66581542e95864e58910) Thanks [@tim-smart](https://github.com/tim-smart)! - fix multiple accounts
+
 ## 0.4.1
 
 ### Patch Changes
