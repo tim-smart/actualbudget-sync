@@ -17,7 +17,6 @@ const bank = Flag.choice("bank", Struct.keys(banks)).pipe(
 )
 
 const accounts = Flag.keyValueMap("accounts").pipe(
-  Flag.repeated,
   Flag.withDescription(
     "Accounts to sync, in the format 'actual-account-id=bank-account-id'",
   ),
@@ -45,13 +44,12 @@ const actualsync = Command.make("actualsync", {
 }).pipe(
   Command.withHandler(({ accounts, categorize, categories, bank }) =>
     Sync.run({
-      accounts: accounts
-        .map((_) => Object.entries(_))
-        .flat()
-        .map(([actualAccountId, bankAccountId]) => ({
+      accounts: Object.entries(accounts).map(
+        ([actualAccountId, bankAccountId]) => ({
           actualAccountId,
           bankAccountId,
-        })),
+        }),
+      ),
       categorize,
       categoryMapping: Option.getOrUndefined(
         Option.map(categories, (categoriesOption) =>

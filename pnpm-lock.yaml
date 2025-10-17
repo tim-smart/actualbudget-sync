@@ -43,17 +43,17 @@ importers:
         specifier: ^0.41.1
         version: 0.41.1
       '@effect/platform-node':
-        specifier: https://pkg.pr.new/Effect-TS/effect-smol/@effect/platform-node@fc8dcf4
-        version: https://pkg.pr.new/Effect-TS/effect-smol/@effect/platform-node@fc8dcf4(effect@https://pkg.pr.new/Effect-TS/effect-smol/effect@fc8dcf4)(ioredis@5.8.0)
+        specifier: https://pkg.pr.new/Effect-TS/effect-smol/@effect/platform-node@311ebba
+        version: https://pkg.pr.new/Effect-TS/effect-smol/@effect/platform-node@311ebba(effect@https://pkg.pr.new/Effect-TS/effect-smol/effect@311ebba)(ioredis@5.8.0)
       '@effect/vitest':
-        specifier: https://pkg.pr.new/Effect-TS/effect-smol/@effect/vitest@fc8dcf4
-        version: https://pkg.pr.new/Effect-TS/effect-smol/@effect/vitest@fc8dcf4(effect@https://pkg.pr.new/Effect-TS/effect-smol/effect@fc8dcf4)(vitest@3.2.4(@types/node@24.6.2)(tsx@4.20.6)(yaml@2.8.1))
+        specifier: https://pkg.pr.new/Effect-TS/effect-smol/@effect/vitest@311ebba
+        version: https://pkg.pr.new/Effect-TS/effect-smol/@effect/vitest@311ebba(effect@https://pkg.pr.new/Effect-TS/effect-smol/effect@311ebba)(vitest@3.2.4(@types/node@24.6.2)(tsx@4.20.6)(yaml@2.8.1))
       '@types/node':
         specifier: ^24.6.2
         version: 24.6.2
       effect:
-        specifier: https://pkg.pr.new/Effect-TS/effect-smol/effect@fc8dcf4
-        version: https://pkg.pr.new/Effect-TS/effect-smol/effect@fc8dcf4
+        specifier: https://pkg.pr.new/Effect-TS/effect-smol/effect@311ebba
+        version: https://pkg.pr.new/Effect-TS/effect-smol/effect@311ebba
       glob:
         specifier: ^11.0.3
         version: 11.0.3
@@ -158,23 +158,23 @@ packages:
     resolution: {integrity: sha512-BZaFkF1JdoTIJuzT7mNfUnfQG2MLxkQtn5b9y1z0BZUIcNfs5p7yR0ekYfTkPkt+TVD+9HE12VC1SsG5DReKww==}
     hasBin: true
 
-  '@effect/platform-node-shared@https://pkg.pr.new/Effect-TS/effect-smol/@effect/platform-node-shared@fc8dcf4':
-    resolution: {tarball: https://pkg.pr.new/Effect-TS/effect-smol/@effect/platform-node-shared@fc8dcf4}
+  '@effect/platform-node-shared@https://pkg.pr.new/Effect-TS/effect-smol/@effect/platform-node-shared@311ebba':
+    resolution: {tarball: https://pkg.pr.new/Effect-TS/effect-smol/@effect/platform-node-shared@311ebba}
     version: 0.31.6
     engines: {node: '>=18.0.0'}
     peerDependencies:
       effect: ^4.0.0
 
-  '@effect/platform-node@https://pkg.pr.new/Effect-TS/effect-smol/@effect/platform-node@fc8dcf4':
-    resolution: {tarball: https://pkg.pr.new/Effect-TS/effect-smol/@effect/platform-node@fc8dcf4}
+  '@effect/platform-node@https://pkg.pr.new/Effect-TS/effect-smol/@effect/platform-node@311ebba':
+    resolution: {tarball: https://pkg.pr.new/Effect-TS/effect-smol/@effect/platform-node@311ebba}
     version: 0.77.6
     engines: {node: '>=18.0.0'}
     peerDependencies:
       effect: ^4.0.0
       ioredis: ^5.7.0
 
-  '@effect/vitest@https://pkg.pr.new/Effect-TS/effect-smol/@effect/vitest@fc8dcf4':
-    resolution: {tarball: https://pkg.pr.new/Effect-TS/effect-smol/@effect/vitest@fc8dcf4}
+  '@effect/vitest@https://pkg.pr.new/Effect-TS/effect-smol/@effect/vitest@311ebba':
+    resolution: {tarball: https://pkg.pr.new/Effect-TS/effect-smol/@effect/vitest@311ebba}
     version: 0.21.1
     peerDependencies:
       effect: ^4.0.0
@@ -934,8 +934,8 @@ packages:
   eastasianwidth@0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
 
-  effect@https://pkg.pr.new/Effect-TS/effect-smol/effect@fc8dcf4:
-    resolution: {tarball: https://pkg.pr.new/Effect-TS/effect-smol/effect@fc8dcf4}
+  effect@https://pkg.pr.new/Effect-TS/effect-smol/effect@311ebba:
+    resolution: {tarball: https://pkg.pr.new/Effect-TS/effect-smol/effect@311ebba}
     version: 4.0.0
 
   emoji-regex@8.0.0:
@@ -2026,19 +2026,19 @@ snapshots:
 
   '@effect/language-service@0.41.1': {}
 
-  '@effect/platform-node-shared@https://pkg.pr.new/Effect-TS/effect-smol/@effect/platform-node-shared@fc8dcf4(effect@https://pkg.pr.new/Effect-TS/effect-smol/effect@fc8dcf4)':
+  '@effect/platform-node-shared@https://pkg.pr.new/Effect-TS/effect-smol/@effect/platform-node-shared@311ebba(effect@https://pkg.pr.new/Effect-TS/effect-smol/effect@311ebba)':
     dependencies:
       '@types/ws': 8.18.1
-      effect: https://pkg.pr.new/Effect-TS/effect-smol/effect@fc8dcf4
+      effect: https://pkg.pr.new/Effect-TS/effect-smol/effect@311ebba
       ws: 8.18.3
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
 
-  '@effect/platform-node@https://pkg.pr.new/Effect-TS/effect-smol/@effect/platform-node@fc8dcf4(effect@https://pkg.pr.new/Effect-TS/effect-smol/effect@fc8dcf4)(ioredis@5.8.0)':
+  '@effect/platform-node@https://pkg.pr.new/Effect-TS/effect-smol/@effect/platform-node@311ebba(effect@https://pkg.pr.new/Effect-TS/effect-smol/effect@311ebba)(ioredis@5.8.0)':
     dependencies:
-      '@effect/platform-node-shared': https://pkg.pr.new/Effect-TS/effect-smol/@effect/platform-node-shared@fc8dcf4(effect@https://pkg.pr.new/Effect-TS/effect-smol/effect@fc8dcf4)
-      effect: https://pkg.pr.new/Effect-TS/effect-smol/effect@fc8dcf4
+      '@effect/platform-node-shared': https://pkg.pr.new/Effect-TS/effect-smol/@effect/platform-node-shared@311ebba(effect@https://pkg.pr.new/Effect-TS/effect-smol/effect@311ebba)
+      effect: https://pkg.pr.new/Effect-TS/effect-smol/effect@311ebba
       ioredis: 5.8.0
       mime: 4.1.0
       undici: 7.16.0
@@ -2046,9 +2046,9 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@effect/vitest@https://pkg.pr.new/Effect-TS/effect-smol/@effect/vitest@fc8dcf4(effect@https://pkg.pr.new/Effect-TS/effect-smol/effect@fc8dcf4)(vitest@3.2.4(@types/node@24.6.2)(tsx@4.20.6)(yaml@2.8.1))':
+  '@effect/vitest@https://pkg.pr.new/Effect-TS/effect-smol/@effect/vitest@311ebba(effect@https://pkg.pr.new/Effect-TS/effect-smol/effect@311ebba)(vitest@3.2.4(@types/node@24.6.2)(tsx@4.20.6)(yaml@2.8.1))':
     dependencies:
-      effect: https://pkg.pr.new/Effect-TS/effect-smol/effect@fc8dcf4
+      effect: https://pkg.pr.new/Effect-TS/effect-smol/effect@311ebba
       vitest: 3.2.4(@types/node@24.6.2)(tsx@4.20.6)(yaml@2.8.1)
 
   '@esbuild/aix-ppc64@0.25.10':
@@ -2568,7 +2568,7 @@ snapshots:
 
   eastasianwidth@0.2.0: {}
 
-  effect@https://pkg.pr.new/Effect-TS/effect-smol/effect@fc8dcf4:
+  effect@https://pkg.pr.new/Effect-TS/effect-smol/effect@311ebba:
     dependencies:
       '@standard-schema/spec': 1.0.0
       fast-check: 4.3.0
