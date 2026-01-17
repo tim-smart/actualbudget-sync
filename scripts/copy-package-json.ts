@@ -1,5 +1,5 @@
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem"
-import { FileSystem } from "effect/platform/FileSystem"
+import { FileSystem } from "effect/FileSystem"
 import { Effect, pipe } from "effect"
 import * as path from "node:path"
 
