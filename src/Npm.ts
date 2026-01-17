@@ -4,10 +4,15 @@ import {
   NodePath,
   NodeSink,
 } from "@effect/platform-node"
-import { Effect, Layer, ServiceMap } from "effect"
-import { Data } from "effect/data"
-import { FileSystem, Path } from "effect/platform"
-import { Stream } from "effect/stream"
+import {
+  Data,
+  Effect,
+  FileSystem,
+  Layer,
+  Path,
+  ServiceMap,
+  Stream,
+} from "effect"
 import {
   HttpClient,
   HttpClientRequest,

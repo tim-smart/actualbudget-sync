@@ -1,8 +1,7 @@
 /**
  * @since 1.0.0
  */
-import { BigDecimal, DateTime, Effect, ServiceMap } from "effect"
-import { Data, Order } from "effect/data"
+import { BigDecimal, Data, DateTime, Effect, Order, ServiceMap } from "effect"
 
 export class BankError extends Data.TaggedError("BankError")<{
   readonly reason: "AccountNotFound" | "Unauthorized" | "Unknown"
@@ -29,8 +28,8 @@ export interface AccountTransaction {
   readonly transfer?: string
 }
 
-export const AccountTransactionOrder = Order.struct({
+export const AccountTransactionOrder = Order.Struct({
   dateTime: DateTime.Order,
   amount: BigDecimal.Order,
-  payee: Order.string,
+  payee: Order.String,
 })

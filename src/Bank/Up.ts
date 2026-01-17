@@ -5,8 +5,12 @@ import {
   Effect,
   flow,
   Layer,
+  Option,
   pipe,
+  Redacted,
   Schedule,
+  Schema,
+  Stream,
 } from "effect"
 import { NodeHttpClient } from "@effect/platform-node"
 import { AccountTransaction, Bank } from "../Bank.ts"
@@ -15,9 +19,6 @@ import {
   HttpClientRequest,
   HttpClientResponse,
 } from "effect/unstable/http"
-import { Option, Redacted } from "effect/data"
-import { Schema } from "effect/schema"
-import { Stream } from "effect/stream"
 import { BigDecimalFromNumber } from "../Schema.ts"
 
 const baseUrl = "https://api.up.com.au/api/v1"

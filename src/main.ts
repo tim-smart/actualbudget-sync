@@ -1,11 +1,10 @@
 import { Command, Flag } from "effect/unstable/cli"
-import { Effect, Layer } from "effect"
+import { Effect, Layer, Option, Struct } from "effect"
 import { NodeRuntime, NodeServices } from "@effect/platform-node"
 import * as Sync from "./Sync.ts"
 import { Actual } from "./Actual.ts"
 import { AkahuLive } from "./Bank/Akahu.ts"
 import { UpBankLive } from "./Bank/Up.ts"
-import { Option, Struct } from "effect/data"
 
 const banks = {
   akahu: AkahuLive,
@@ -16,7 +15,7 @@ const bank = Flag.choice("bank", Struct.keys(banks)).pipe(
   Flag.withDescription("Which bank to use"),
 )
 
-const accounts = Flag.keyValueMap("accounts").pipe(
+const accounts = Flag.keyValuePair("accounts").pipe(
   Flag.withDescription(
     "Accounts to sync, in the format 'actual-account-id=bank-account-id'",
   ),
@@ -29,7 +28,7 @@ const categorize = Flag.boolean("categorize").pipe(
   ),
 )
 
-const categories = Flag.keyValueMap("categories").pipe(
+const categories = Flag.keyValuePair("categories").pipe(
   Flag.optional,
   Flag.withDescription(
     "Requires --categorize to have any effect. Maps the banks values to actual values with the format 'bank-category=actual-category'",

@@ -1,14 +1,13 @@
 /**
  * @since 1.0.0
  */
-import { BigDecimal, DateTime, Effect, Fiber, pipe } from "effect"
+import { Array, BigDecimal, DateTime, Effect, Fiber, pipe } from "effect"
 import { AccountTransaction, AccountTransactionOrder, Bank } from "./Bank.ts"
 import { Actual, ActualError } from "./Actual.ts"
 import {
   APICategoryEntity,
   APIPayeeEntity,
 } from "@actual-app/api/@types/loot-core/src/server/api-models.js"
-import { Array } from "effect/collections"
 
 const bigDecimal100 = BigDecimal.fromNumberUnsafe(100)
 const amountToInt = (amount: BigDecimal.BigDecimal) =>
@@ -151,7 +150,7 @@ export const run = Effect.fnUntraced(function* (options: {
           existingPayee.name === existing.imported_payee
         ) {
           updates.push(
-            yield* Effect.fork(
+            yield* Effect.forkChild(
               actual.use((_) =>
                 _.updatePayee(existingPayee.id, {
                   name: transaction.payee_name,

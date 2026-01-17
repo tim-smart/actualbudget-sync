@@ -1,4 +1,4 @@
-import { BigDecimal, DateTime, Effect, Layer } from "effect"
+import { BigDecimal, DateTime, Effect, Layer, Stream } from "effect"
 import {
   AccountId,
   Akahu,
@@ -10,7 +10,6 @@ import {
 } from "./Akahu.ts"
 import { assert, it } from "@effect/vitest"
 import { runTest } from "../Sync.ts"
-import { Stream } from "effect/stream"
 
 const AkahuTest = Layer.succeed(Akahu)(
   Akahu.of({

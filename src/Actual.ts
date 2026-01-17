@@ -1,16 +1,22 @@
 /**
  * @since 1.0.0
  */
-import { Config, Effect, Layer, ServiceMap } from "effect"
+import {
+  Array,
+  Config,
+  Data,
+  Effect,
+  Layer,
+  Redacted,
+  Schema,
+  ServiceMap,
+} from "effect"
 import * as Api from "@actual-app/api"
 import ApiPackage from "@actual-app/api/package.json" with { type: "json" }
 import { Npm } from "./Npm.ts"
 import { NodeHttpClient } from "@effect/platform-node"
 import { TransactionEntity } from "@actual-app/api/@types/loot-core/src/types/models/transaction.js"
-import { Data, Redacted } from "effect/data"
 import { HttpClient, HttpClientResponse } from "effect/unstable/http"
-import { Schema } from "effect/schema"
-import { Array } from "effect/collections"
 
 export type Query = ReturnType<typeof Api.q>
 

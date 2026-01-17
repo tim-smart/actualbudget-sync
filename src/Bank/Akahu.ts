@@ -1,13 +1,20 @@
 import {
+  Array,
+  Brand,
   Config,
   DateTime,
   Effect,
   flow,
   identity,
   Layer,
+  Option,
   pipe,
+  Redacted,
   Schedule,
+  Schema,
+  SchemaGetter,
   ServiceMap,
+  Stream,
 } from "effect"
 import { AccountTransaction, Bank, BankError } from "../Bank.ts"
 import {
@@ -15,11 +22,7 @@ import {
   HttpClientRequest,
   HttpClientResponse,
 } from "effect/unstable/http"
-import { Option, Redacted, Brand } from "effect/data"
-import { Getter, Schema } from "effect/schema"
-import { Stream } from "effect/stream"
 import { BigDecimalFromNumber } from "../Schema.ts"
-import { Array } from "effect/collections"
 import { NodeHttpClient } from "@effect/platform-node"
 
 export class Akahu extends ServiceMap.Service<Akahu>()("Bank/Akahu", {
@@ -72,7 +75,13 @@ export class Akahu extends ServiceMap.Service<Akahu>()("Bank/Akahu", {
     const transactions = stream(Transaction)
     const lastRefreshed = accounts.pipe(
       Stream.map((account) => account.refreshed.transactions),
-      Stream.runHead,
+      Stream.runFold(Option.none<DateTime.Utc>, (acc, curr) =>
+        Option.match(acc, {
+          onNone: () => Option.some(curr),
+          onSome: (dt) =>
+            DateTime.isLessThan(curr, dt) ? Option.some(curr) : acc,
+        }),
+      ),
       Effect.flatMap(Effect.fromYieldable),
       Effect.orDie,
     )
@@ -122,7 +131,7 @@ export const AkahuLayer = Effect.gen(function* () {
 
   yield* akahu.lastRefreshed.pipe(
     Effect.flatMap((refreshed) =>
-      DateTime.greaterThanOrEqualTo(refreshed, beforeRefresh)
+      DateTime.isGreaterThanOrEqualTo(refreshed, beforeRefresh)
         ? Effect.void
         : new BankError({
             reason: "Unknown",
@@ -216,8 +225,8 @@ export class PendingTransaction extends Schema.Class<PendingTransaction>(
 
 const OptionalDateTimeUtc = Schema.optional(Schema.DateTimeUtc).pipe(
   Schema.decodeTo(Schema.DateTimeUtc, {
-    decode: Getter.withDefault(DateTime.nowUnsafe),
-    encode: Getter.passthrough(),
+    decode: SchemaGetter.withDefault(DateTime.nowUnsafe),
+    encode: SchemaGetter.passthrough(),
   }),
 )
 

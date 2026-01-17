@@ -1,8 +1,7 @@
 /**
  * @since 1.0.0
  */
-import { Config, Effect, Layer, ServiceMap } from "effect"
-import { Data } from "effect/data"
+import { Config, Data, Effect, Layer, ServiceMap } from "effect"
 import * as Api from "playwright"
 
 export class PlaywrightError extends Data.TaggedError("PlaywrightError")<{
@@ -58,7 +57,9 @@ export class BrowserContext extends ServiceMap.Service<
   static Live = this.layer().pipe(Layer.provide(Browser.Live))
 }
 
-export class Page extends ServiceMap.Service<Page, Api.Page>()("Playwright/Page") {
+export class Page extends ServiceMap.Service<Page, Api.Page>()(
+  "Playwright/Page",
+) {
   static layer = Layer.effect(this)(
     Effect.flatMap(BrowserContext.asEffect(), (context) =>
       Effect.acquireRelease(
