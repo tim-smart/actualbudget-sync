@@ -1,5 +1,11 @@
 # @tim-smart/actualbudget-sync
 
+## 0.4.3
+
+### Patch Changes
+
+- [`2455e94`](https://github.com/tim-smart/actualbudget-sync/commit/2455e940f6614a2fc40713818ed12d2fdba1af77) Thanks [@tim-smart](https://github.com/tim-smart)! - use earliest account refresh time for checking last refresh time
+
 ## 0.4.2
 
 ### Patch Changes
