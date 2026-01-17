@@ -78,8 +78,7 @@ export class Akahu extends ServiceMap.Service<Akahu>()("Bank/Akahu", {
       Stream.runFold(Option.none<DateTime.Utc>, (acc, curr) =>
         Option.match(acc, {
           onNone: () => Option.some(curr),
-          onSome: (dt) =>
-            DateTime.isLessThan(curr, dt) ? Option.some(curr) : acc,
+          onSome: (dt) => Option.some(DateTime.min(dt, curr)),
         }),
       ),
       Effect.flatMap(Effect.fromYieldable),
