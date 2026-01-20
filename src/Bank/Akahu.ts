@@ -26,7 +26,7 @@ import {
 import { BigDecimalFromNumber } from "../Schema.ts"
 import { NodeHttpClient } from "@effect/platform-node"
 
-class Akahu extends ServiceMap.Service<Akahu>()("Bank/Akahu", {
+export class Akahu extends ServiceMap.Service<Akahu>()("Bank/Akahu", {
   make: Effect.gen(function* () {
     const appToken = yield* Config.redacted("AKAHU_APP_TOKEN")
     const userToken = yield* Config.redacted("AKAHU_USER_TOKEN")
@@ -174,14 +174,14 @@ class Category extends Schema.Class<Category>("Category")({
   name: Schema.String,
 }) {}
 
-const ConnectionId: Schema.refine<
+export const ConnectionId: Schema.refine<
   string & Brand.Brand<"ConnectionId">,
   Schema.String
 > = Schema.String.pipe(Schema.brand("ConnectionId"))
-const AccountId = Schema.String.pipe(Schema.brand("AccountId"))
-const UserId = Schema.String.pipe(Schema.brand("UserId"))
+export const AccountId = Schema.String.pipe(Schema.brand("AccountId"))
+export const UserId = Schema.String.pipe(Schema.brand("UserId"))
 
-class Transaction extends Schema.Class<Transaction>("Transaction")({
+export class Transaction extends Schema.Class<Transaction>("Transaction")({
   _id: Schema.String,
   _account: AccountId,
   _user: UserId,
@@ -208,7 +208,7 @@ class Cursor extends Schema.Class<Cursor>("Cursor")({
   next: Schema.NullOr(Schema.String),
 }) {}
 
-class PendingTransaction extends Schema.Class<PendingTransaction>(
+export class PendingTransaction extends Schema.Class<PendingTransaction>(
   "PendingTransaction",
 )({
   _user: UserId,
