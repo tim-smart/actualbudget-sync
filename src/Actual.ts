@@ -35,8 +35,8 @@ export class Actual extends ServiceMap.Service<Actual>()("Actual", {
     )
     const server = yield* Config.url("ACTUAL_SERVER")
     const password = yield* Config.redacted("ACTUAL_PASSWORD")
-    const encryptionPassword = yield* Config.redacted(
-      "encryptionPassword",
+    const encryptionPassword = yield* Config.string(
+      "ACTUAL_ENCRYPTION_PASSWORD",
     ).pipe(Config.withDefault(() => undefined))
     const syncId = yield* Config.string("ACTUAL_SYNC_ID")
 
@@ -108,9 +108,7 @@ export class Actual extends ServiceMap.Service<Actual>()("Actual", {
     yield* use((_) =>
       _.downloadBudget(
         syncId,
-        encryptionPassword
-          ? { password: Redacted.value(encryptionPassword) }
-          : {},
+        encryptionPassword ? { password: encryptionPassword } : {},
       ),
     )
     yield* Effect.addFinalizer(() => sync)
