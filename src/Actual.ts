@@ -116,6 +116,7 @@ export class Actual extends ServiceMap.Service<Actual>()("Actual", {
 
     const query = <A>(f: (q: (typeof Api)["q"]) => Query) =>
       use(({ aqlQuery, q }) => aqlQuery(f(q))).pipe(
+        // oxlint-disable-next-line typescript/no-explicit-any
         Effect.map((result: any) => result.data as ReadonlyArray<A>),
       )
 

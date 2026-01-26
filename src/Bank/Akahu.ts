@@ -118,7 +118,9 @@ export class Akahu extends ServiceMap.Service<Akahu>()("Bank/Akahu", {
 
 export const AkahuLayer = Effect.gen(function* () {
   const akahu = yield* Akahu
-  const timeZone = DateTime.zoneMakeNamedUnsafe("Pacific/Auckland")
+  const timeZone = (yield* Effect.serviceOption(DateTime.CurrentTimeZone)).pipe(
+    Option.getOrElse(() => DateTime.zoneMakeNamedUnsafe("Pacific/Auckland")),
+  )
 
   yield* Effect.log("Refreshing Akahu transactions")
   const beforeRefresh = yield* akahu.lastRefreshed

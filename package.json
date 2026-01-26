@@ -13,13 +13,14 @@
     "type": "git"
   },
   "scripts": {
+    "prepare": "husky && effect-language-service patch",
     "test": "vitest",
     "codegen": "build-utils prepare-v2",
     "clean": "rimraf rm -rf dist/*",
     "build": "tsup && pnpm copy-package-json",
     "build:ts": "tsup",
     "copy-package-json": "tsx scripts/copy-package-json.ts",
-    "check": "tsc --noEmit",
+    "check": "tsc --noEmit && oxlint -c .oxlintrc.json",
     "changeset-version": "changeset version",
     "changeset-publish": "pnpm build && changeset publish"
   },
@@ -27,36 +28,48 @@
   "author": "Tim Smart <hello@timsmart.co>",
   "license": "MIT",
   "devDependencies": {
-    "@changesets/changelog-github": "^0.5.1",
-    "@changesets/cli": "^2.29.7",
-    "@effect/language-service": "^0.41.1",
-    "@effect/platform-node": "https://pkg.pr.new/Effect-TS/effect-smol/@effect/platform-node@83a2bed",
-    "@effect/vitest": "https://pkg.pr.new/Effect-TS/effect-smol/@effect/vitest@83a2bed",
-    "@types/node": "^24.6.2",
-    "effect": "https://pkg.pr.new/Effect-TS/effect-smol/effect@83a2bed",
-    "glob": "^11.0.3",
-    "prettier": "^3.6.2",
-    "rimraf": "^6.0.1",
-    "tar": "7.4.3",
-    "tsup": "^8.5.0",
-    "tsx": "^4.20.6",
+    "@changesets/changelog-github": "^0.5.2",
+    "@changesets/cli": "^2.29.8",
+    "@effect/language-service": "^0.72.0",
+    "@effect/platform-node": "https://pkg.pr.new/Effect-TS/effect-smol/@effect/platform-node@45cf7ba",
+    "@effect/vitest": "https://pkg.pr.new/Effect-TS/effect-smol/@effect/vitest@45cf7ba",
+    "@types/node": "^25.0.10",
+    "effect": "https://pkg.pr.new/Effect-TS/effect-smol/effect@45cf7ba",
+    "glob": "^13.0.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "oxlint": "^1.41.0",
+    "prettier": "^3.8.1",
+    "rimraf": "^6.1.2",
+    "tar": "7.5.6",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "vitest": "^3.2.4"
+    "vitest": "^4.0.18"
   },
   "dependencies": {
-    "@actual-app/api": "25.9.0",
+    "@actual-app/api": "26.1.0",
     "@actual-app/crdt": "^2.1.0",
-    "better-sqlite3": "^12.2.0",
+    "better-sqlite3": "^12.6.2",
     "compare-versions": "^6.1.1",
-    "google-protobuf": "^3.12.0-rc.1",
+    "google-protobuf": "^4.0.1",
     "node-fetch": "^3.3.2",
-    "playwright": "^1.55.1",
-    "uuid": "^12.0.0"
+    "playwright": "^1.58.0",
+    "uuid": "^13.0.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
       "better-sqlite3",
       "esbuild"
+    ]
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "oxlint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
     ]
   }
 }

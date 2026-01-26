@@ -1,5 +1,5 @@
 import { Command, Flag } from "effect/unstable/cli"
-import { Effect, Layer, Option, Struct } from "effect"
+import { Config, DateTime, Effect, Layer, Option, Struct } from "effect"
 import { NodeRuntime, NodeServices } from "@effect/platform-node"
 import * as Sync from "./Sync.ts"
 import { Actual } from "./Actual.ts"
@@ -35,11 +35,21 @@ const categories = Flag.keyValuePair("categories").pipe(
   ),
 )
 
+const timezone = Flag.string("timezone").pipe(
+  Flag.withDescription(
+    "The timezone to use to display transaction timestamps. Defaults to the banks timezone.",
+  ),
+  Flag.withFallbackConfig(Config.string("TIMEZONE")),
+  Flag.map((tz) => DateTime.layerCurrentZoneNamed(tz)),
+  Flag.withDefault(Layer.empty),
+)
+
 const actualsync = Command.make("actualsync", {
   bank,
   accounts,
   categorize,
   categories,
+  timezone,
 }).pipe(
   Command.withHandler(({ accounts, categorize, categories, bank }) =>
     Sync.run({
@@ -62,6 +72,7 @@ const actualsync = Command.make("actualsync", {
       ),
     }).pipe(Effect.provide(Layer.mergeAll(banks[bank], Actual.layer))),
   ),
+  Command.provide(({ timezone }) => timezone),
 )
 
 const run = Command.runWith(actualsync, {
