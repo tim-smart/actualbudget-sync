@@ -124,55 +124,15 @@ spec:
 Here is a copy of the CLI help:
 
 ```
-actualsync
-
-actualsync 0.0.1
-
 USAGE
+  actualsync [flags]
 
-$ actualsync --bank akahu | up --accounts text [(-c, --categorize)] [--categories text]
-
-OPTIONS
-
---bank akahu | up
-
-  One of the following: akahu, up
-
-  Which bank to use
-
---accounts text
-
-  A user-defined piece of text.
-
-  Accounts to sync, in the format 'actual-account-id=bank-account-id'
-
-  This setting is a property argument which:
-
-    - May be specified a single time:  '--accounts key1=value key2=value2'
-
-    - May be specified multiple times: '--accounts key1=value --accounts key2=value2'
-
-(-c, --categorize)
-
-  A true or false value.
-
-  If the bank supports categorization, try to categorize transactions
-
-  This setting is optional.
-
---categories text
-
-  A user-defined piece of text.
-
-  Requires --categorize to have any effect. Maps the banks values to actual values with the format 'bank-category=actual-category'
-
-  This setting is a property argument which:
-
-    - May be specified a single time:  '--categories key1=value key2=value2'
-
-    - May be specified multiple times: '--categories key1=value --categories key2=value2'
-
-  This setting is optional.
+FLAGS
+  --bank choice             Which bank to use
+  --accounts key=value      Accounts to sync, in the format 'actual-account-id=bank-account-id'
+  --categorize, -c          If the bank supports categorization, try to categorize transactions
+  --categories key=value    Requires --categorize to have any effect. Maps the banks values to actual values with the format 'bank-category=actual-category'
+  --timezone string         The timezone to use to display transaction timestamps. Defaults to the bank timezone.
 ```
 
 You will also need to set these environment variables:
