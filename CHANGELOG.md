@@ -1,5 +1,11 @@
 # @tim-smart/actualbudget-sync
 
+## 0.4.4
+
+### Patch Changes
+
+- [`d8fcbd6`](https://github.com/tim-smart/actualbudget-sync/commit/d8fcbd65beb5decea33414c89e7f527639d94971) Thanks [@tim-smart](https://github.com/tim-smart)! - add support for overriding the display timezone
+
 ## 0.4.3
 
 ### Patch Changes
