@@ -37,7 +37,7 @@ const categories = Flag.keyValuePair("categories").pipe(
 
 const timezone = Flag.string("timezone").pipe(
   Flag.withDescription(
-    "The timezone to use to display transaction timestamps. Defaults to the banks timezone.",
+    "The timezone to use to display transaction timestamps. Defaults to the bank timezone.",
   ),
   Flag.withFallbackConfig(Config.string("TIMEZONE")),
   Flag.map((tz) => DateTime.layerCurrentZoneNamed(tz)),
