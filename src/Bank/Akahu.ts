@@ -288,7 +288,9 @@ const AkahuApi = HttpApi.make("akahu").add(
       },
     ),
     HttpApiEndpoint.post("refresh", "/refresh", {
-      success: Schema.Void.annotate({
+      success: Schema.Struct({
+        success: Schema.Boolean,
+      }).annotate({
         httpApiStatus: 200,
       }),
     }),

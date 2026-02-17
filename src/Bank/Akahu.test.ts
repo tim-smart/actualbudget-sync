@@ -14,7 +14,7 @@ import { runTest } from "../Sync.ts"
 const AkahuTest = Layer.succeed(Akahu)(
   Akahu.of({
     lastRefreshed: DateTime.now,
-    refresh: Effect.void,
+    refresh: Effect.succeed({ success: true }),
     transactions: (accountId: string) =>
       accountId === "checking"
         ? Stream.make(
