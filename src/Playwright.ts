@@ -23,7 +23,7 @@ export class Browser extends ServiceMap.Service<Browser, Api.Browser>()(
     )
 
   static Live = Layer.unwrap(
-    Effect.gen({ this: this }, function* () {
+    Effect.gen({ self: this }, function* () {
       const isProd = yield* Config.string("NODE_ENV").pipe(
         Config.map((env) => env === "production"),
         Config.withDefault(() => false),

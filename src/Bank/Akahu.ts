@@ -61,7 +61,7 @@ export class Akahu extends ServiceMap.Service<Akahu>()("Bank/Akahu", {
 
     const refresh = client.transactions.refresh()
     const accounts = stream((cursor) =>
-      client.accounts.list({ urlParams: { cursor } }),
+      client.accounts.list({ query: { cursor } }),
     )
     const lastRefreshed = accounts.pipe(
       Stream.map((account) => account.refreshed.transactions),
@@ -82,8 +82,8 @@ export class Akahu extends ServiceMap.Service<Akahu>()("Bank/Akahu", {
       const lastMonth = now.pipe(DateTime.subtract({ days: 30 }))
       return stream((cursor) =>
         client.transactions.pending({
-          path: { accountId },
-          urlParams: {
+          params: { accountId },
+          query: {
             start: lastMonth,
             amount_as_number: "true",
             cursor,
@@ -93,8 +93,8 @@ export class Akahu extends ServiceMap.Service<Akahu>()("Bank/Akahu", {
         Stream.merge(
           stream((cursor) =>
             client.transactions.list({
-              path: { accountId },
-              urlParams: {
+              params: { accountId },
+              query: {
                 start: lastMonth,
                 cursor,
               },
@@ -159,9 +159,7 @@ export const AkahuLayer = Effect.gen(function* () {
         ),
       ),
   })
-}).pipe(Effect.annotateLogs({ service: "Bank/Akahu" }), (_) =>
-  Layer.effect(Bank)(_),
-)
+}).pipe(Effect.annotateLogs({ service: "Bank/Akahu" }), Layer.effect(Bank))
 
 export const AkahuLive = AkahuLayer.pipe(Layer.provide(Akahu.layer))
 
@@ -265,10 +263,10 @@ const PaginatedResponse = <S extends Schema.Top>(schema: S) =>
 const AkahuApi = HttpApi.make("akahu").add(
   HttpApiGroup.make("transactions").add(
     HttpApiEndpoint.get("list", "/accounts/:accountId/transactions", {
-      path: {
+      params: {
         accountId: AccountId,
       },
-      urlParams: {
+      query: {
         start: Schema.DateTimeUtcFromString,
         cursor: Schema.optional(Schema.String),
       },
@@ -278,10 +276,10 @@ const AkahuApi = HttpApi.make("akahu").add(
       "pending",
       "/accounts/:accountId/transactions/pending",
       {
-        path: {
+        params: {
           accountId: AccountId,
         },
-        urlParams: {
+        query: {
           start: Schema.DateTimeUtcFromString,
           amount_as_number: Schema.Literal("true"),
           cursor: Schema.optional(Schema.String),
@@ -297,7 +295,7 @@ const AkahuApi = HttpApi.make("akahu").add(
   ),
   HttpApiGroup.make("accounts").add(
     HttpApiEndpoint.get("list", "/accounts", {
-      urlParams: {
+      query: {
         cursor: Schema.optional(Schema.String),
       },
       success: PaginatedResponse(Account),
