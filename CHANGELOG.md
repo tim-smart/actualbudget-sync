@@ -1,5 +1,11 @@
 # @tim-smart/actualbudget-sync
 
+## 0.4.7
+
+### Patch Changes
+
+- [#42](https://github.com/tim-smart/actualbudget-sync/pull/42) [`d54f558`](https://github.com/tim-smart/actualbudget-sync/commit/d54f55834c21bdf4f97c019db7ff4efba1b951f4) Thanks [@tim-smart](https://github.com/tim-smart)! - add --cleared-only for only syncing cleared transactions
+
 ## 0.4.6
 
 ### Patch Changes
