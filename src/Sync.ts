@@ -119,6 +119,7 @@ export const run = Effect.fnUntraced(function* (options: {
     readonly actualCategory: string
   }>
   readonly syncDuration: Duration.Duration
+  readonly clearedOnly: boolean
 }) {
   const actual = yield* Actual
   const categories = yield* actual.use(
@@ -139,6 +140,10 @@ export const run = Effect.fnUntraced(function* (options: {
     let toImport: typeof transactions = []
     const updates = Array.empty<Fiber.Fiber<unknown, ActualError>>()
     for (const transaction of transactions) {
+      if (options.clearedOnly && !transaction.cleared) {
+        continue
+      }
+
       const existing = alreadyImported.get(transaction.imported_id)
       if (!existing) {
         toImport.push(transaction)

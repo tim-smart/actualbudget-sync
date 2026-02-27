@@ -58,6 +58,11 @@ const timezone = Flag.string("timezone").pipe(
   Flag.withDefault(Layer.empty),
 )
 
+const clearedOnly = Flag.boolean("cleared-only").pipe(
+  Flag.withDescription("Only sync cleared transactions"),
+  Flag.withAlias("c"),
+)
+
 const actualsync = Command.make("actualsync", {
   bank,
   accounts,
@@ -65,9 +70,10 @@ const actualsync = Command.make("actualsync", {
   categories,
   timezone,
   syncDuration,
+  clearedOnly,
 }).pipe(
   Command.withHandler(
-    ({ accounts, categorize, categories, bank, syncDuration }) =>
+    ({ accounts, categorize, categories, bank, syncDuration, clearedOnly }) =>
       Sync.run({
         accounts: Object.entries(accounts).map(
           ([actualAccountId, bankAccountId]) => ({
@@ -87,6 +93,7 @@ const actualsync = Command.make("actualsync", {
           ),
         ),
         syncDuration,
+        clearedOnly,
       }).pipe(Effect.provide(Layer.mergeAll(banks[bank], Actual.layer))),
   ),
   Command.provide(({ timezone }) => timezone),
