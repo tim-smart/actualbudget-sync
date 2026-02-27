@@ -1,5 +1,11 @@
 # @tim-smart/actualbudget-sync
 
+## 0.4.6
+
+### Patch Changes
+
+- [#40](https://github.com/tim-smart/actualbudget-sync/pull/40) [`b334aea`](https://github.com/tim-smart/actualbudget-sync/commit/b334aea9c7dd14f67356b761f0e6658ea805ad09) Thanks [@rodyo](https://github.com/rodyo)! - add --sync-days flag for configuring how far back to look for transactions
+
 ## 0.4.5
 
 ### Patch Changes

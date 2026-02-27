@@ -1,6 +1,6 @@
 {
   "name": "@tim-smart/actualbudget-sync",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "CLI for syncing banks with Actual Budget",
   "type": "module",
   "publishConfig": {
