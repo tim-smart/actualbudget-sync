@@ -1,5 +1,11 @@
 # @tim-smart/actualbudget-sync
 
+## 0.4.8
+
+### Patch Changes
+
+- [#45](https://github.com/tim-smart/actualbudget-sync/pull/45) [`f88570a`](https://github.com/tim-smart/actualbudget-sync/commit/f88570a682c823a9307522d374425a405d095272) Thanks [@rodyo](https://github.com/rodyo)! - change cleared-only alias to fix conflict
+
 ## 0.4.7
 
 ### Patch Changes
