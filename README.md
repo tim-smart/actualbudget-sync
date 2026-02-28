@@ -133,6 +133,7 @@ FLAGS
   --sync-days number        Number of days to sync back from today (default: 30)
   --categorize, -c          If the bank supports categorization, try to categorize transactions
   --categories key=value    Requires --categorize to have any effect. Maps the banks values to actual values with the format 'bank-category=actual-category'
+  --cleared-only, -C        Only sync cleared transactions
   --timezone string         The timezone to use to display transaction timestamps. Defaults to the bank timezone.
 ```
 

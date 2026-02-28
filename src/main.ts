@@ -60,7 +60,7 @@ const timezone = Flag.string("timezone").pipe(
 
 const clearedOnly = Flag.boolean("cleared-only").pipe(
   Flag.withDescription("Only sync cleared transactions"),
-  Flag.withAlias("c"),
+  Flag.withAlias("C"),
 )
 
 const actualsync = Command.make("actualsync", {
