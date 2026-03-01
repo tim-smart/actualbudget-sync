@@ -20,7 +20,7 @@
     "build": "tsup && pnpm copy-package-json",
     "build:ts": "tsup",
     "copy-package-json": "tsx scripts/copy-package-json.ts",
-    "check": "tsc --noEmit && oxlint -c .oxlintrc.json",
+    "check": "oxlint -c .oxlintrc.json --fix && tsc --noEmit",
     "changeset-version": "changeset version",
     "changeset-publish": "pnpm build && changeset publish"
   },

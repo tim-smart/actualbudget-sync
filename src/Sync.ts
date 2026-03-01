@@ -10,9 +10,13 @@ import {
   Fiber,
   pipe,
 } from "effect"
-import { AccountTransaction, AccountTransactionOrder, Bank } from "./Bank.ts"
-import { Actual, ActualError } from "./Actual.ts"
 import {
+  type AccountTransaction,
+  AccountTransactionOrder,
+  Bank,
+} from "./Bank.ts"
+import { Actual, type ActualError } from "./Actual.ts"
+import type {
   APICategoryEntity,
   APIPayeeEntity,
 } from "@actual-app/api/@types/loot-core/src/server/api-models.js"

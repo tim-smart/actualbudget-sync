@@ -1,6 +1,6 @@
 import {
   Array,
-  Brand,
+  type Brand,
   Config,
   DateTime,
   Effect,
@@ -15,7 +15,7 @@ import {
   ServiceMap,
   Stream,
 } from "effect"
-import { AccountTransaction, Bank, BankError } from "../Bank.ts"
+import { type AccountTransaction, Bank, BankError } from "../Bank.ts"
 import { HttpClient, HttpClientRequest } from "effect/unstable/http"
 import {
   HttpApi,

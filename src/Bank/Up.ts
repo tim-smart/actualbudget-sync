@@ -14,14 +14,14 @@ import {
   Stream,
 } from "effect"
 import { NodeHttpClient } from "@effect/platform-node"
-import { AccountTransaction, Bank } from "../Bank.ts"
+import { type AccountTransaction, Bank } from "../Bank.ts"
 import {
   HttpClient,
   HttpClientRequest,
   HttpClientResponse,
 } from "effect/unstable/http"
 import { BigDecimalFromNumber } from "../Schema.ts"
-import { NonEmptyReadonlyArray } from "effect/Array"
+import type { NonEmptyReadonlyArray } from "effect/Array"
 
 const baseUrl = "https://api.up.com.au/api/v1"
 

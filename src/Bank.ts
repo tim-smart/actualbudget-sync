@@ -1,7 +1,14 @@
 /**
  * @since 1.0.0
  */
-import { BigDecimal, Data, DateTime, Effect, Order, ServiceMap } from "effect"
+import {
+  BigDecimal,
+  Data,
+  DateTime,
+  type Effect,
+  Order,
+  ServiceMap,
+} from "effect"
 
 export class BankError extends Data.TaggedError("BankError")<{
   readonly reason: "AccountNotFound" | "Unauthorized" | "Unknown"

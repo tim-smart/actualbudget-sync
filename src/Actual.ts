@@ -15,7 +15,7 @@ import * as Api from "@actual-app/api"
 import ApiPackage from "@actual-app/api/package.json" with { type: "json" }
 import { Npm } from "./Npm.ts"
 import { NodeHttpClient } from "@effect/platform-node"
-import { TransactionEntity } from "@actual-app/api/@types/loot-core/src/types/models/transaction.js"
+import type { TransactionEntity } from "@actual-app/api/@types/loot-core/src/types/models/transaction.js"
 import { HttpClient, HttpClientResponse } from "effect/unstable/http"
 
 export type Query = ReturnType<typeof Api.q>

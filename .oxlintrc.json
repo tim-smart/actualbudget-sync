@@ -9,6 +9,16 @@
   },
   "rules": {
     "typescript/no-explicit-any": "error",
-    "no-shadow": "off"
+    "no-shadow": "off",
+    "typescript/consistent-type-imports": [
+      "error",
+      {
+        "fixStyle": "inline-type-imports"
+      }
+    ],
+    "typescript/no-import-type-side-effects": "error",
+    "import/no-duplicates": "error",
+    "import/no-self-import": "error",
+    "import/no-empty-named-blocks": "error"
   }
 }

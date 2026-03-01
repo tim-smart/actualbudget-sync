@@ -130,11 +130,17 @@ USAGE
 FLAGS
   --bank choice             Which bank to use
   --accounts key=value      Accounts to sync, in the format 'actual-account-id=bank-account-id'
-  --sync-days number        Number of days to sync back from today (default: 30)
   --categorize, -c          If the bank supports categorization, try to categorize transactions
   --categories key=value    Requires --categorize to have any effect. Maps the banks values to actual values with the format 'bank-category=actual-category'
-  --cleared-only, -C        Only sync cleared transactions
   --timezone string         The timezone to use to display transaction timestamps. Defaults to the bank timezone.
+  --sync-days integer       Number of days to sync (default: 30)
+  --cleared-only, -C        Only sync cleared transactions
+
+GLOBAL FLAGS
+  --help, -h              Show help information
+  --version               Show version information
+  --completions choice    Print shell completion script
+  --log-level choice      Sets the minimum log level
 ```
 
 You will also need to set these environment variables:
