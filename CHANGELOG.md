@@ -1,5 +1,13 @@
 # @tim-smart/actualbudget-sync
 
+## 0.4.9
+
+### Patch Changes
+
+- [#47](https://github.com/tim-smart/actualbudget-sync/pull/47) [`08fac53`](https://github.com/tim-smart/actualbudget-sync/commit/08fac53c6a79e46444bab8ad63050a08decb1251) Thanks [@alecpirillo](https://github.com/alecpirillo)! - chunk import ids for sql query to avoid param limits
+
+- [#48](https://github.com/tim-smart/actualbudget-sync/pull/48) [`382bd74`](https://github.com/tim-smart/actualbudget-sync/commit/382bd74baab21e093cd7c077773a452683686464) Thanks [@alecpirillo](https://github.com/alecpirillo)! - Up bank improvements
+
 ## 0.4.8
 
 ### Patch Changes
