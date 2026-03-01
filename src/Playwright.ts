@@ -26,7 +26,7 @@ export class Browser extends ServiceMap.Service<Browser, Api.Browser>()(
     Effect.gen({ self: this }, function* () {
       const isProd = yield* Config.string("NODE_ENV").pipe(
         Config.map((env) => env === "production"),
-        Config.withDefault(() => false),
+        Config.withDefault(false),
       )
 
       return this.layerChromium({
