@@ -76,6 +76,7 @@ export const runCollect = Effect.fnUntraced(function* (options: {
       const ids: Array<string> = []
       const forImport = pipe(
         transactions,
+        // oxlint-disable-next-line unicorn/no-array-sort
         Array.sort(AccountTransactionOrder),
         Array.map((transaction) => {
           const imported_id = importId(transaction)

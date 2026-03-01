@@ -2,7 +2,6 @@
  * @since 1.0.0
  */
 import {
-  Array,
   Config,
   Data,
   Effect,
@@ -10,6 +9,7 @@ import {
   Redacted,
   Schema,
   ServiceMap,
+  Stream,
 } from "effect"
 import * as Api from "@actual-app/api"
 import ApiPackage from "@actual-app/api/package.json" with { type: "json" }
@@ -122,36 +122,35 @@ export class Actual extends ServiceMap.Service<Actual>()("Actual", {
         Effect.map((result: any) => result.data as ReadonlyArray<A>),
       )
 
-    // SQLite has a default maximum of 999 variables per query, so we chunk the queries to avoid hitting that limit.
-    const SQLITE_OR_CHUNK_SIZE = 500
-
-    const findImported = (importedIds: ReadonlyArray<string>) =>
-      importedIds.length === 0
-        ? Effect.succeed(new Map<never, never>())
-        : Effect.forEach(
-            Array.chunksOf(importedIds, SQLITE_OR_CHUNK_SIZE),
-            (chunk) =>
-              query<TransactionEntity>((q) =>
-                q("transactions")
-                  .select(["*"])
-                  .filter({
-                    $or: chunk.map((imported_id) => ({ imported_id })),
-                  })
-                  .withDead(),
-              ),
-          ).pipe(
-            Effect.map(
-              Array.reduce(
-                new Map<string, TransactionEntity>(),
-                (acc, items) => {
-                  for (const item of items) {
-                    acc.set(item.imported_id!, item)
-                  }
-                  return acc
-                },
-              ),
-            ),
-          )
+    const findImported = (importedIds: ReadonlyArray<string>) => {
+      if (importedIds.length === 0) {
+        return Effect.succeed(new Map<string, TransactionEntity>())
+      }
+      return Stream.fromIterable(importedIds).pipe(
+        // SQLite has a default maximum of 999 variables per query, so we chunk the queries to avoid hitting that limit.
+        Stream.rechunk(500),
+        Stream.chunks,
+        Stream.mapEffect((chunk) =>
+          query<TransactionEntity>((q) =>
+            q("transactions")
+              .select(["*"])
+              .filter({
+                $or: chunk.map((imported_id) => ({ imported_id })),
+              })
+              .withDead(),
+          ),
+        ),
+        Stream.runFold(
+          () => new Map<string, TransactionEntity>(),
+          (acc, items) => {
+            for (const item of items) {
+              acc.set(item.imported_id!, item)
+            }
+            return acc
+          },
+        ),
+      )
+    }
 
     return { use, query, findImported } as const
   }),
