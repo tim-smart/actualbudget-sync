@@ -69,11 +69,24 @@ export const UpBankLive = Effect.gen(function* () {
     accountId: string,
     options: { readonly since: DateTime.Utc },
   ) {
+    yield* Effect.logInfo("Fetching transactions from Up Bank...")
+    let count = 0
     const txs = yield* transactions(
       HttpClientRequest.get(`${baseUrl}/accounts/${accountId}/transactions`, {
         urlParams: { "filter[since]": DateTime.formatIso(options.since) },
       }),
-    ).pipe(Stream.runCollect)
+    ).pipe(
+      Stream.tap(() => {
+        count++
+        return count % 500 === 0
+          ? Effect.logInfo(`Fetched ${count} transactions...`)
+          : Effect.void
+      }),
+      Stream.runCollect,
+    )
+    yield* Effect.logInfo(
+      `Done fetching ${txs.length} transactions from Up Bank`,
+    )
     return txs.map((t) => t.accountTransaction())
   })
 
