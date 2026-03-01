@@ -1,4 +1,5 @@
 import {
+  Array,
   BigDecimal,
   Config,
   DateTime,
@@ -20,6 +21,7 @@ import {
   HttpClientResponse,
 } from "effect/unstable/http"
 import { BigDecimalFromNumber } from "../Schema.ts"
+import { NonEmptyReadonlyArray } from "effect/Array"
 
 const baseUrl = "https://api.up.com.au/api/v1"
 
@@ -76,6 +78,7 @@ export const UpBankLive = Effect.gen(function* () {
         urlParams: { "filter[since]": DateTime.formatIso(options.since) },
       }),
     ).pipe(
+      Stream.mapArray(Array.flatMap((t) => t.accountTransactions())),
       Stream.tap(() => {
         count++
         return count % 500 === 0
@@ -87,7 +90,7 @@ export const UpBankLive = Effect.gen(function* () {
     yield* Effect.logInfo(
       `Done fetching ${txs.length} transactions from Up Bank`,
     )
-    return txs.map((t) => t.accountTransaction())
+    return txs
   })
 
   return Bank.of({
@@ -103,14 +106,26 @@ class MoneyObject extends Schema.Class<MoneyObject>("MoneyObject")({
   valueInBaseUnits: BigDecimalFromNumber,
 }) {}
 
+const moneyToBigDecimal = (m: MoneyObject) =>
+  BigDecimal.divideUnsafe(m.valueInBaseUnits, BigDecimal.fromNumberUnsafe(100))
+
 class Transaction extends Schema.Class<Transaction>("Transaction")({
+  id: Schema.String,
   type: Schema.Literal("transactions"),
   attributes: Schema.Struct({
     status: Schema.Literals(["HELD", "SETTLED"]),
     description: Schema.String,
+    message: Schema.NullOr(Schema.String),
     amount: MoneyObject,
+    settledAt: Schema.NullOr(Schema.DateTimeUtcFromString),
     createdAt: Schema.DateTimeUtcFromString,
     note: Schema.NullOr(Schema.Struct({ text: Schema.String })),
+    cashback: Schema.NullOr(
+      Schema.Struct({
+        description: Schema.String,
+        amount: MoneyObject,
+      }),
+    ),
   }),
   relationships: Schema.Struct({
     category: Schema.Struct({
@@ -131,19 +146,51 @@ class Transaction extends Schema.Class<Transaction>("Transaction")({
     }),
   }),
 }) {
-  accountTransaction(): AccountTransaction {
-    return {
-      dateTime: this.attributes.createdAt,
-      amount: BigDecimal.divideUnsafe(
-        this.attributes.amount.valueInBaseUnits,
-        BigDecimal.fromNumberUnsafe(100),
-      ),
-      payee: this.attributes.description,
-      notes: this.attributes.note?.text,
-      cleared: this.attributes.status === "SETTLED",
-      category: this.relationships.category.data?.id,
-      transfer: this.relationships.transferAccount.data?.id,
+  accountTransactions(): NonEmptyReadonlyArray<AccountTransaction> {
+    const dateTime = this.attributes.settledAt ?? this.attributes.createdAt
+    const cleared = this.attributes.status === "SETTLED"
+    const amount = moneyToBigDecimal(this.attributes.amount)
+    const description = this.attributes.description
+    const baseNotes =
+      this.attributes.note?.text ?? this.attributes.message ?? undefined
+
+    // For Up-specific internal transfers, surface a descriptive note
+    const transferId = this.relationships.transferAccount.data?.id
+    let notes = baseNotes
+    if (transferId !== undefined) {
+      if (description === "Round Up") {
+        notes = "Round Up"
+      } else if (description.startsWith("Cover")) {
+        notes = description.replace("from", "-")
+      } else if (description.startsWith("Forward")) {
+        notes = description.replace("to", "-")
+      }
     }
+
+    const base: AccountTransaction = {
+      dateTime,
+      amount,
+      payee: description,
+      notes,
+      cleared,
+      category: this.relationships.category.data?.id,
+      transfer: transferId,
+    }
+
+    // Perk-up / Happy Hour cashback: emit as a separate incoming transaction
+    if (this.attributes.cashback !== null) {
+      const cb = this.attributes.cashback
+      const cashbackTx: AccountTransaction = {
+        dateTime,
+        amount: moneyToBigDecimal(cb.amount),
+        payee: cb.description,
+        notes: baseNotes,
+        cleared,
+      }
+      return [base, cashbackTx]
+    }
+
+    return [base]
   }
 }
 
