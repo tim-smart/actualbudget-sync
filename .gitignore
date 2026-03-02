@@ -1,4 +1,6 @@
 .env
+.env.*
+!.env.example
 .direnv/
 node_modules/
 *.tsbuildinfo
@@ -6,3 +8,4 @@ data/
 dist/
 build/
 .lalph/
+.repos/
