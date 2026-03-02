@@ -47,6 +47,12 @@ actualsync --bank akahu \
 Your sync ID can be found in Actual Budget under Settings > Show Advanced Settings > IDs.
 Your Actual Budget Account IDs can be found from the account URL in the Actual Budget UI (e.g., `https://actual.example.com/accounts/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`).
 Your Akahu Account IDs can be found from the URL on the Akahu web UI (e.g., `https://my.akahu.nz/connections/conn_id/acc_xxxxxxxxxxxxxxxxxxxxxxxxx`).
+Your Up Account IDs can be retrieved via the Up API:
+
+```bash
+curl https://api.up.com.au/api/v1/accounts \
+  -H "Authorization: Bearer $UP_USER_TOKEN" | jq '.data[].id'
+```
 
 ### Docker
 
@@ -118,6 +124,14 @@ spec:
       parallelism: 1
       completions: 1
 ```
+
+## Development / Debugging
+
+A VSCode launch configuration is included for running the Up Bank sync locally. To use it:
+
+1. Copy `.env.example` to `.env.debug` and fill in your credentials.
+2. Update the `--accounts` arguments in [`.vscode/launch.json`](.vscode/launch.json) with your actual and Up account IDs.
+3. Run the **"Sync 1000 days Up Bank"** configuration from the VSCode debugger (Run and Debug panel).
 
 ## Usage
 

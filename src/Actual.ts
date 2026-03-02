@@ -31,13 +31,13 @@ export class Actual extends ServiceMap.Service<Actual>()("Actual", {
     )
     const npm = yield* Npm
     const dataDir = yield* Config.string("ACTUAL_DATA").pipe(
-      Config.withDefault("data"),
+      Config.withDefault(() => "data"),
     )
     const server = yield* Config.url("ACTUAL_SERVER")
     const password = yield* Config.redacted("ACTUAL_PASSWORD")
     const encryptionPassword = yield* Config.redacted(
       "ACTUAL_ENCRYPTION_PASSWORD",
-    ).pipe(Config.withDefault(undefined))
+    ).pipe(Config.withDefault(() => undefined))
     const syncId = yield* Config.string("ACTUAL_SYNC_ID")
 
     if (!server.pathname.endsWith("/")) {

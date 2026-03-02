@@ -1,0 +1,24 @@
+{
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Sync 1000 days Up Bank",
+      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/tsx",
+      "args": [
+        "src/main.ts",
+        "--bank",
+        "up",
+        "--sync-days",
+        "1000",
+        "--accounts",
+        "actual-account-id=up-account-id",
+        "--accounts",
+        "actual-account-id2=up-account-id2"
+      ],
+      "cwd": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}/.env.debug",
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
+}
