@@ -39,7 +39,7 @@ export const UpBankLive = Effect.gen(function* () {
     HttpClient.withRateLimiter({
       limiter: yield* RateLimiter.RateLimiter,
       window: "1 minute",
-      limit: 500,
+      limit: 100,
       key: "bank:up",
     }),
     HttpClient.retryTransient({
