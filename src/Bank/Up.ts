@@ -3,6 +3,7 @@ import {
   BigDecimal,
   Config,
   DateTime,
+  Duration,
   Effect,
   flow,
   Layer,
@@ -16,6 +17,7 @@ import {
 import { NodeHttpClient } from "@effect/platform-node"
 import { type AccountTransaction, Bank } from "../Bank.ts"
 import {
+  Headers,
   HttpClient,
   HttpClientRequest,
   HttpClientResponse,
@@ -24,6 +26,13 @@ import { BigDecimalFromNumber } from "../Schema.ts"
 import type { NonEmptyReadonlyArray } from "effect/Array"
 
 const baseUrl = "https://api.up.com.au/api/v1"
+
+class UpServerError extends Schema.TaggedErrorClass<UpServerError>()(
+  "UpServerError",
+  {
+    status: Schema.Number,
+  },
+) {}
 
 export const UpBankLive = Effect.gen(function* () {
   const userToken = yield* Config.redacted("UP_USER_TOKEN")
@@ -34,25 +43,77 @@ export const UpBankLive = Effect.gen(function* () {
         HttpClientRequest.acceptJson,
       ),
     ),
-    HttpClient.filterStatusOk,
-    HttpClient.retryTransient({
-      schedule: Schedule.exponential(500),
-      times: 5,
-    }),
-    HttpClient.transformResponse(Effect.orDie),
   )
 
   const stream = <S extends Schema.Top>(schema: S) => {
     const Page = PaginatedResponse(schema)
     return (request: HttpClientRequest.HttpClientRequest) => {
-      const getPage = (url: string) =>
-        pipe(
-          request,
-          HttpClientRequest.setUrl(url),
-          client.execute,
-          Effect.flatMap(HttpClientResponse.schemaBodyJson(Page)),
-          Effect.orDie,
-        )
+      // Explicit return type uses concrete types so recursive self-reference
+      // doesn't widen to `unknown`.
+      const fetchPage = Effect.fn("Up.fetchPage")(
+        function* (
+          url: string,
+        ): Effect.fn.Return<
+          HttpClientResponse.HttpClientResponse,
+          UpServerError
+        > {
+          const response = yield* pipe(
+            request,
+            HttpClientRequest.setUrl(url),
+            client.execute,
+            Effect.mapError(() => new UpServerError({ status: 0 })),
+          )
+
+          if (response.status === 429) {
+            const retryAfter = Headers.get(response.headers, "retry-after")
+            const delaySecs =
+              retryAfter !== undefined ? Number.parseInt(retryAfter, 10) : 60
+            const delay = Duration.seconds(
+              Number.isNaN(delaySecs) ? 60 : delaySecs,
+            )
+            yield* Effect.logWarning(
+              `Up Bank rate limited (429), waiting ${Duration.toSeconds(delay)}s before retry`,
+            )
+            yield* Effect.sleep(delay)
+            return yield* fetchPage(url)
+          }
+
+          if (response.status >= 500) {
+            return yield* new UpServerError({ status: response.status })
+          }
+
+          if (response.status < 200 || response.status >= 300) {
+            return yield* Effect.die(
+              new Error(`Up Bank API error: HTTP ${response.status}`),
+            )
+          }
+
+          const remaining = Headers.get(
+            response.headers,
+            "x-ratelimit-remaining",
+          )
+          if (remaining !== undefined) {
+            const remainingCount = Number.parseInt(remaining, 10)
+            if (!Number.isNaN(remainingCount) && remainingCount <= 3) {
+              yield* Effect.logInfo(
+                `Up Bank rate limit low (${remainingCount} remaining), pausing 60s`,
+              )
+              yield* Effect.sleep(Duration.seconds(60))
+            }
+          }
+
+          return response
+        },
+        Effect.retry(
+          Schedule.both(Schedule.exponential("500 millis"), Schedule.recurs(5)),
+        ),
+        Effect.orDie,
+      )
+
+      const getPage = Effect.fn("Up.getPage")(function* (url: string) {
+        const response = yield* fetchPage(url)
+        return yield* HttpClientResponse.schemaBodyJson(Page)(response)
+      }, Effect.orDie)
 
       return Stream.paginate(request.url, (url: string) =>
         getPage(url).pipe(
