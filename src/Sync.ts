@@ -16,10 +16,6 @@ import {
   Bank,
 } from "./Bank.ts"
 import { Actual, type ActualError } from "./Actual.ts"
-import type {
-  APICategoryEntity,
-  APIPayeeEntity,
-} from "@actual-app/api/@types/loot-core/src/server/api-models.js"
 
 const bigDecimal100 = BigDecimal.fromNumberUnsafe(100)
 const amountToInt = (amount: BigDecimal.BigDecimal) =>
@@ -83,7 +79,7 @@ export const runCollect = Effect.fnUntraced(function* (options: {
         // oxlint-disable-next-line unicorn/no-array-sort
         Array.sort(AccountTransactionOrder),
         Array.map((transaction) => {
-          const imported_id = importId(actualAccountId, transaction)
+          const imported_id = importId(bankAccountId, transaction)
           const category = options.categorize && categoryId(transaction)
           const transferPayee =
             transaction.transfer && transferAccountId(transaction)
@@ -127,12 +123,8 @@ export const run = Effect.fnUntraced(function* (options: {
   readonly clearedOnly: boolean
 }) {
   const actual = yield* Actual
-  const categories = yield* actual.use(
-    (_) => _.getCategories() as Promise<Array<APICategoryEntity>>,
-  )
-  const payees = yield* actual.use(
-    (_) => _.getPayees() as Promise<Array<APIPayeeEntity>>,
-  )
+  const categories = yield* actual.use((_) => _.getCategories())
+  const payees = yield* actual.use((_) => _.getPayees())
 
   const results = yield* runCollect({
     ...options,
