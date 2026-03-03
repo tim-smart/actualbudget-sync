@@ -83,7 +83,7 @@ export const runCollect = Effect.fnUntraced(function* (options: {
         // oxlint-disable-next-line unicorn/no-array-sort
         Array.sort(AccountTransactionOrder),
         Array.map((transaction) => {
-          const imported_id = importId(transaction)
+          const imported_id = importId(actualAccountId, transaction)
           const category = options.categorize && categoryId(transaction)
           const transferPayee =
             transaction.transfer && transferAccountId(transaction)
@@ -141,7 +141,7 @@ export const run = Effect.fnUntraced(function* (options: {
   })
 
   for (const { transactions, ids, actualAccountId } of results) {
-    const alreadyImported = yield* actual.findImported(ids)
+    const alreadyImported = yield* actual.findImported(ids, actualAccountId)
     let toImport: typeof transactions = []
     const updates = Array.empty<Fiber.Fiber<unknown, ActualError>>()
     for (const transaction of transactions) {
@@ -193,13 +193,14 @@ export const run = Effect.fnUntraced(function* (options: {
 
 const makeImportId = () => {
   const counters = new Map<string, number>()
-  return (self: AccountTransaction) => {
+  return (accountId: string, self: AccountTransaction) => {
     const dateParts = DateTime.toParts(self.dateTime)
     const dateString = `${dateParts.year.toString().padStart(4, "0")}${dateParts.month.toString().padStart(2, "0")}${dateParts.day.toString().padStart(2, "0")}`
     const amountInt = amountToInt(self.amount)
     const prefix = `${dateString}${amountInt}`
-    const count = counters.has(prefix) ? counters.get(prefix)! + 1 : 1
-    counters.set(prefix, count)
+    const key = `${accountId}:${prefix}`
+    const count = counters.has(key) ? counters.get(key)! + 1 : 1
+    counters.set(key, count)
     return `${prefix}-${count}`
   }
 }
