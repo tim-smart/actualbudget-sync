@@ -22,6 +22,7 @@ import {
 } from "effect/unstable/http"
 import { BigDecimalFromNumber } from "../Schema.ts"
 import type { NonEmptyReadonlyArray } from "effect/Array"
+import { RateLimiter } from "effect/unstable/persistence"
 
 const baseUrl = "https://api.up.com.au/api/v1"
 
@@ -35,8 +36,14 @@ export const UpBankLive = Effect.gen(function* () {
       ),
     ),
     HttpClient.filterStatusOk,
+    HttpClient.withRateLimiter({
+      limiter: yield* RateLimiter.RateLimiter,
+      window: "1 minute",
+      limit: 100,
+      key: "bank:up",
+    }),
     HttpClient.retryTransient({
-      schedule: Schedule.exponential(500),
+      schedule: Schedule.exponential(200),
       times: 5,
     }),
     HttpClient.transformResponse(Effect.orDie),
@@ -75,7 +82,10 @@ export const UpBankLive = Effect.gen(function* () {
     let count = 0
     const txs = yield* transactions(
       HttpClientRequest.get(`${baseUrl}/accounts/${accountId}/transactions`, {
-        urlParams: { "filter[since]": DateTime.formatIso(options.since) },
+        urlParams: {
+          "page[size]": 100,
+          "filter[since]": DateTime.formatIso(options.since),
+        },
       }),
     ).pipe(
       Stream.mapArray(Array.flatMap((t) => t.accountTransactions())),
@@ -98,8 +108,11 @@ export const UpBankLive = Effect.gen(function* () {
   })
 }).pipe(
   Effect.annotateLogs({ service: "Bank/Up" }),
-  (_) => Layer.effect(Bank)(_),
+  Layer.effect(Bank),
   Layer.provide(NodeHttpClient.layerUndici),
+  Layer.provide(
+    RateLimiter.layer.pipe(Layer.provide(RateLimiter.layerStoreMemory)),
+  ),
 )
 
 class MoneyObject extends Schema.Class<MoneyObject>("MoneyObject")({

@@ -42,17 +42,17 @@ importers:
         specifier: ^0.74.0
         version: 0.74.0
       "@effect/platform-node":
-        specifier: 4.0.0-beta.24
-        version: 4.0.0-beta.24(effect@4.0.0-beta.24)(ioredis@5.8.0)
+        specifier: 4.0.0-beta.25
+        version: 4.0.0-beta.25(effect@4.0.0-beta.25)(ioredis@5.8.0)
       "@effect/vitest":
-        specifier: 4.0.0-beta.24
-        version: 4.0.0-beta.24(effect@4.0.0-beta.24)(vitest@4.0.18(@types/node@25.2.3)(tsx@4.21.0)(yaml@2.8.2))
+        specifier: 4.0.0-beta.25
+        version: 4.0.0-beta.25(effect@4.0.0-beta.25)(vitest@4.0.18(@types/node@25.2.3)(tsx@4.21.0)(yaml@2.8.2))
       "@types/node":
         specifier: ^25.2.3
         version: 25.2.3
       effect:
-        specifier: 4.0.0-beta.24
-        version: 4.0.0-beta.24
+        specifier: 4.0.0-beta.25
+        version: 4.0.0-beta.25
       glob:
         specifier: ^13.0.5
         version: 13.0.5
@@ -237,32 +237,32 @@ packages:
       }
     hasBin: true
 
-  "@effect/platform-node-shared@4.0.0-beta.24":
+  "@effect/platform-node-shared@4.0.0-beta.25":
     resolution:
       {
-        integrity: sha512-6THma6RwHsUnYkouflgy1FZkX1AlqVzD0ckcx/tQ85pTmGnACpMNZwC7AmNrYHG9ahrLNnvuCKjb8ZjcDByFng==,
+        integrity: sha512-UKyXUWtz2h8M3fNoE2KrT0QnGy4zfnO8E/ciREmbRz7NnhdafKGXK/zZ3icVH1Bo70Sa+7sQx73FGe4k3h1yfQ==,
       }
     engines: { node: ">=18.0.0" }
     peerDependencies:
-      effect: ^4.0.0-beta.24
+      effect: ^4.0.0-beta.25
 
-  "@effect/platform-node@4.0.0-beta.24":
+  "@effect/platform-node@4.0.0-beta.25":
     resolution:
       {
-        integrity: sha512-xLosD6kwtEYgwoY2sVlnpgbAfwBJpqmveAoiptQ5GTMN3edpnIV/vvSvbNJSgembk6NtfImVYl0Bs7UbCGzBxA==,
+        integrity: sha512-PIYF40MHPGQL/VKnUdVkUzBNfaLx7CjDHkHRCGIE4l/cdrRoSUNFQIHvDXKfyioftzuqO8HHAAdYIF2Zesc68g==,
       }
     engines: { node: ">=18.0.0" }
     peerDependencies:
-      effect: ^4.0.0-beta.24
+      effect: ^4.0.0-beta.25
       ioredis: ^5.7.0
 
-  "@effect/vitest@4.0.0-beta.24":
+  "@effect/vitest@4.0.0-beta.25":
     resolution:
       {
-        integrity: sha512-qh1MvKQtoQ4/+2Ky2C4KJIQJRBs66UZC7hNNDywR25twMf7Pq9uveFtIh2sCMtRp5AENriUfCkbWRCiXW+6aaQ==,
+        integrity: sha512-K8Fhs3gvlSvmU2Ye6y4nCLP3Y0qh9M6I0ZRCOb4lvwe9lacR597jROxWcsm3RDOXE/8vHkSye7+9pqqm7Jog0Q==,
       }
     peerDependencies:
-      effect: ^4.0.0-beta.24
+      effect: ^4.0.0-beta.25
       vitest: ^3.0.0 || ^4.0.0
 
   "@esbuild/aix-ppc64@0.27.2":
@@ -1431,10 +1431,10 @@ packages:
       }
     engines: { node: ">=10" }
 
-  effect@4.0.0-beta.24:
+  effect@4.0.0-beta.25:
     resolution:
       {
-        integrity: sha512-ib5Wq+PPdtT3tcBxooZEpMH2lhalTLhXQ4AJmjsG3SFN/Vofe5lgbF+ZIASZvih+dHOM+meZqZNStmBausbAsw==,
+        integrity: sha512-5dFGfJuJOITAlKnK9tmBNAtTxJt0/G65QO0ouet0QqFsDNDptZf8egYaWAJ/8RnYigzLhieE/A8qvnyKwmAPjw==,
       }
 
   emoji-regex@10.6.0:
@@ -3173,19 +3173,19 @@ snapshots:
 
   "@effect/language-service@0.74.0": {}
 
-  "@effect/platform-node-shared@4.0.0-beta.24(effect@4.0.0-beta.24)":
+  "@effect/platform-node-shared@4.0.0-beta.25(effect@4.0.0-beta.25)":
     dependencies:
       "@types/ws": 8.18.1
-      effect: 4.0.0-beta.24
+      effect: 4.0.0-beta.25
       ws: 8.19.0
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
 
-  "@effect/platform-node@4.0.0-beta.24(effect@4.0.0-beta.24)(ioredis@5.8.0)":
+  "@effect/platform-node@4.0.0-beta.25(effect@4.0.0-beta.25)(ioredis@5.8.0)":
     dependencies:
-      "@effect/platform-node-shared": 4.0.0-beta.24(effect@4.0.0-beta.24)
-      effect: 4.0.0-beta.24
+      "@effect/platform-node-shared": 4.0.0-beta.25(effect@4.0.0-beta.25)
+      effect: 4.0.0-beta.25
       ioredis: 5.8.0
       mime: 4.1.0
       undici: 7.22.0
@@ -3193,9 +3193,9 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  "@effect/vitest@4.0.0-beta.24(effect@4.0.0-beta.24)(vitest@4.0.18(@types/node@25.2.3)(tsx@4.21.0)(yaml@2.8.2))":
+  "@effect/vitest@4.0.0-beta.25(effect@4.0.0-beta.25)(vitest@4.0.18(@types/node@25.2.3)(tsx@4.21.0)(yaml@2.8.2))":
     dependencies:
-      effect: 4.0.0-beta.24
+      effect: 4.0.0-beta.25
       vitest: 4.0.18(@types/node@25.2.3)(tsx@4.21.0)(yaml@2.8.2)
 
   "@esbuild/aix-ppc64@0.27.2":
@@ -3683,7 +3683,7 @@ snapshots:
 
   dotenv@8.6.0: {}
 
-  effect@4.0.0-beta.24:
+  effect@4.0.0-beta.25:
     dependencies:
       "@standard-schema/spec": 1.1.0
       fast-check: 4.5.3
