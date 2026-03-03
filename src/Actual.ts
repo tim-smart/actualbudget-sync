@@ -122,7 +122,10 @@ export class Actual extends ServiceMap.Service<Actual>()("Actual", {
         Effect.map((result: any) => result.data as ReadonlyArray<A>),
       )
 
-    const findImported = (importedIds: ReadonlyArray<string>) => {
+    const findImported = (
+      importedIds: ReadonlyArray<string>,
+      accountId: string,
+    ) => {
       if (importedIds.length === 0) {
         return Effect.succeed(new Map<string, TransactionEntity>())
       }
@@ -135,6 +138,7 @@ export class Actual extends ServiceMap.Service<Actual>()("Actual", {
             q("transactions")
               .select(["*"])
               .filter({
+                account: accountId,
                 $or: chunk.map((imported_id) => ({ imported_id })),
               })
               .withDead(),
