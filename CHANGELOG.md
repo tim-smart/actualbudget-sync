@@ -1,5 +1,13 @@
 # @tim-smart/actualbudget-sync
 
+## 0.4.10
+
+### Patch Changes
+
+- [#54](https://github.com/tim-smart/actualbudget-sync/pull/54) [`2926328`](https://github.com/tim-smart/actualbudget-sync/commit/2926328747a72c3413833c3bdef2e6dda56775d6) Thanks [@alecpirillo](https://github.com/alecpirillo)! - Fix duplicate and missing transactions when the same account is included in multiple sync runs
+
+- [#52](https://github.com/tim-smart/actualbudget-sync/pull/52) [`70bfad5`](https://github.com/tim-smart/actualbudget-sync/commit/70bfad54a480a49e597c251e0083af20a3b22d03) Thanks [@tim-smart](https://github.com/tim-smart)! - Add rate limiter to up bank
+
 ## 0.4.9
 
 ### Patch Changes
