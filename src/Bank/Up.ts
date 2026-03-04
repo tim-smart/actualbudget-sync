@@ -26,7 +26,7 @@ import { RateLimiter } from "effect/unstable/persistence"
 
 const baseUrl = "https://api.up.com.au/api/v1"
 
-export const UpBankLive = Effect.gen(function* () {
+export const UpBankLayer = Effect.gen(function* () {
   const userToken = yield* Config.redacted("UP_USER_TOKEN")
   const client = (yield* HttpClient.HttpClient).pipe(
     HttpClient.mapRequest(
@@ -106,9 +106,9 @@ export const UpBankLive = Effect.gen(function* () {
   return Bank.of({
     exportAccount: accountTransactions,
   })
-}).pipe(
-  Effect.annotateLogs({ service: "Bank/Up" }),
-  Layer.effect(Bank),
+}).pipe(Effect.annotateLogs({ service: "Bank/Up" }), Layer.effect(Bank))
+
+export const UpBankLive = UpBankLayer.pipe(
   Layer.provide(NodeHttpClient.layerUndici),
   Layer.provide(
     RateLimiter.layer.pipe(Layer.provide(RateLimiter.layerStoreMemory)),
