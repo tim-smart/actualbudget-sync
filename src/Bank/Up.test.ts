@@ -205,6 +205,21 @@ const shortSyncTxns = [
     settledAt: "2024-01-12T10:00:00+11:00",
     transferAccountId: "round-up-account",
   }),
+  // Outgoing cover to the joint account (which IS in the sync list via runTest's "savings").
+  // In real Up usage this is e.g. "Cover to 2Up Spending" where transferAccount = the joint account.
+  makeTransaction("cover-to-1", {
+    description: "Cover to Savings",
+    amountBaseUnits: -3000,
+    settledAt: "2024-01-13T10:00:00+11:00",
+    transferAccountId: "savings",
+  }),
+  // Incoming cover from an external Up user (NOT in the sync list).
+  makeTransaction("cover-from-1", {
+    description: "Cover from Jane Smith",
+    amountBaseUnits: 3000,
+    settledAt: "2024-01-13T12:00:00+11:00",
+    transferAccountId: "external-jane-up",
+  }),
 ]
 
 // Only return transactions for the "checking" account; "savings" returns empty.
@@ -259,6 +274,36 @@ it.layer(shortSyncLayer)("Short sync (<30 days, <100 transactions)", (it) => {
       assert.exists(tx)
       assert.equal(tx!.amount, -50)
     }),
+  )
+
+  it.effect(
+    "Cover to a synced account resolves to a transfer payee (no payee_name)",
+    () =>
+      Effect.gen(function* () {
+        const results = yield* runTest({ categorize: false })
+        // "savings" is in the accounts list → transfer resolves to payee "7"
+        // notes = "Cover to Savings" (description.replace("from", "-") is a no-op here)
+        const tx = results.find((r) => r.notes === "Cover to Savings")
+        assert.exists(tx)
+        assert.equal(tx!.amount, -3000)
+        assert.isFalse(
+          "payee_name" in tx!,
+          "should use transfer payee, not payee_name",
+        )
+        assert.equal((tx as unknown as { payee: string }).payee, "7")
+      }),
+  )
+
+  it.effect(
+    "Cover from an external Up user formats notes to 'Cover - $name'",
+    () =>
+      Effect.gen(function* () {
+        const results = yield* runTest({ categorize: false })
+        // notes = "Cover from Jane Smith".replace("from", "-") = "Cover - Jane Smith"
+        const tx = results.find((r) => r.notes === "Cover - Jane Smith")
+        assert.exists(tx)
+        assert.equal(tx!.amount, 3000)
+      }),
   )
 })
 
