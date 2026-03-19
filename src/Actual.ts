@@ -2,6 +2,7 @@
  * @since 1.0.0
  */
 import {
+  Array,
   Config,
   Data,
   Effect,
@@ -156,7 +157,21 @@ export class Actual extends ServiceMap.Service<Actual>()("Actual", {
       )
     }
 
-    return { use, query, findImported } as const
+    // Find an auto-created transfer counterpart (no imported_id) matching the
+    // given account and amount. Used to detect when the other side of a
+    // cross-user transfer has already been imported by a separate sync run.
+    const findTransferCounterpart = (accountId: string, amount: number) =>
+      query<TransactionEntity>((q) =>
+        q("transactions").select(["*"]).filter({ account: accountId, amount }),
+      ).pipe(
+        Effect.map(
+          Array.findFirst(
+            (t) => t.transfer_id != null && t.imported_id == null,
+          ),
+        ),
+      )
+
+    return { use, query, findImported, findTransferCounterpart } as const
   }),
 }) {
   static layer = Layer.effect(this)(this.make).pipe(

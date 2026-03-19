@@ -805,3 +805,211 @@ it.effect(
       )
     }),
 )
+
+// ---------------------------------------------------------------------------
+// Test 6a — transferAccounts: joint account transferring to a partner's
+//            personal account that is listed only in transferAccounts.
+//
+// The joint account pays out to personal-b (e.g. splitting expenses). Run A
+// syncs [personal-a, joint] and lists personal-b as a transfer-only account.
+// The joint → personal-b transaction must resolve to "pb-payee", and
+// personal-b's endpoint must never be fetched.
+// ---------------------------------------------------------------------------
+
+it.effect(
+  "transferAccounts (joint→personal): joint transfer to partner account resolves payee without fetching it",
+  () =>
+    Effect.gen(function* () {
+      const requestedUrls = yield* Ref.make<ReadonlyArray<string>>([])
+
+      const crossPayees = [
+        {
+          id: "pa-payee",
+          name: "Personal A",
+          transfer_acct: "actual-personal-a",
+        },
+        {
+          id: "pb-payee",
+          name: "Personal B",
+          transfer_acct: "actual-personal-b",
+        },
+        { id: "joint-payee", name: "Joint", transfer_acct: "actual-joint" },
+      ]
+
+      const jointTxns = [
+        makeTransaction("joint-to-pb", {
+          description: "Transfer to Personal B",
+          amountBaseUnits: -20000,
+          settledAt: "2024-01-20T10:00:00+11:00",
+          transferAccountId: "personal-b",
+        }),
+        makeTransaction("joint-groceries", {
+          description: "Groceries",
+          amountBaseUnits: -5000,
+          settledAt: "2024-01-21T10:00:00+11:00",
+        }),
+      ]
+
+      const layer = makeUpTestLayer((req) =>
+        Effect.gen(function* () {
+          yield* Ref.update(requestedUrls, (urls) => [...urls, req.url])
+          return HttpClientResponse.fromWeb(
+            req,
+            makePage(req.url.includes("/joint/") ? jointTxns : [], null),
+          )
+        }),
+      )
+
+      const results = yield* runCollect({
+        accounts: [
+          { bankAccountId: "personal-a", actualAccountId: "actual-personal-a" },
+          { bankAccountId: "joint", actualAccountId: "actual-joint" },
+        ],
+        transferAccounts: [
+          { bankAccountId: "personal-b", actualAccountId: "actual-personal-b" },
+        ],
+        syncDuration: Duration.days(30),
+        categorize: false,
+        categories: testCategories,
+        payees: crossPayees,
+      }).pipe(Effect.provide(layer))
+
+      const jointAcc = results.find(
+        (r) => r.actualAccountId === "actual-joint",
+      )!
+
+      // joint → personal-b resolves to "pb-payee" via transferAccounts
+      const transferTx = jointAcc.transactions.find(
+        (t) => "payee" in t && (t as { payee: string }).payee === "pb-payee",
+      )
+      assert.exists(
+        transferTx,
+        "joint→personal-b should resolve to pb-payee via transferAccounts",
+      )
+      assert.equal(transferTx!.amount, -20000)
+
+      // Unrelated joint transaction still falls back to payee_name
+      const groceryTx = jointAcc.transactions.find(
+        (t) => payeeName(t) === "Groceries",
+      )
+      assert.exists(groceryTx, "non-transfer transaction should use payee_name")
+
+      const urls = yield* Ref.get(requestedUrls)
+      assert.isFalse(
+        urls.some((url) => url.includes("/personal-b/")),
+        "personal-b is in transferAccounts only — its endpoint must not be fetched",
+      )
+      assert.isTrue(
+        urls.some((url) => url.includes("/personal-a/")),
+        "personal-a is in accounts — its endpoint must be fetched",
+      )
+    }),
+)
+
+// ---------------------------------------------------------------------------
+// Test 6b — transferAccounts: personal account transferring directly to a
+//            partner's personal account listed only in transferAccounts.
+//
+// Partner A sends money to Partner B (personal-a → personal-b). Run A syncs
+// [personal-a, joint] and lists personal-b as a transfer-only account.
+// The personal-a → personal-b transaction must resolve to "pb-payee".
+// ---------------------------------------------------------------------------
+
+it.effect(
+  "transferAccounts (personal→personal): direct transfer to partner account resolves payee",
+  () =>
+    Effect.gen(function* () {
+      const crossPayees = [
+        {
+          id: "pa-payee",
+          name: "Personal A",
+          transfer_acct: "actual-personal-a",
+        },
+        {
+          id: "pb-payee",
+          name: "Personal B",
+          transfer_acct: "actual-personal-b",
+        },
+        { id: "joint-payee", name: "Joint", transfer_acct: "actual-joint" },
+      ]
+
+      const personalATxns = [
+        // Direct transfer from personal-a to personal-b
+        makeTransaction("pa-to-pb", {
+          description: "Transfer to Partner",
+          amountBaseUnits: -50000,
+          settledAt: "2024-01-20T10:00:00+11:00",
+          transferAccountId: "personal-b",
+        }),
+        makeTransaction("pa-coffee", {
+          description: "Coffee",
+          amountBaseUnits: -450,
+          settledAt: "2024-01-21T10:00:00+11:00",
+        }),
+      ]
+
+      const layer = makeUpTestLayer((req) =>
+        Effect.succeed(
+          HttpClientResponse.fromWeb(
+            req,
+            makePage(
+              req.url.includes("/personal-a/") ? personalATxns : [],
+              null,
+            ),
+          ),
+        ),
+      )
+
+      const results = yield* runCollect({
+        accounts: [
+          { bankAccountId: "personal-a", actualAccountId: "actual-personal-a" },
+          { bankAccountId: "joint", actualAccountId: "actual-joint" },
+        ],
+        transferAccounts: [
+          { bankAccountId: "personal-b", actualAccountId: "actual-personal-b" },
+        ],
+        syncDuration: Duration.days(30),
+        categorize: false,
+        categories: testCategories,
+        payees: crossPayees,
+      }).pipe(Effect.provide(layer))
+
+      const personalAAcc = results.find(
+        (r) => r.actualAccountId === "actual-personal-a",
+      )!
+
+      // personal-a → personal-b resolves to "pb-payee" via transferAccounts
+      const transferTx = personalAAcc.transactions.find(
+        (t) => "payee" in t && (t as { payee: string }).payee === "pb-payee",
+      )
+      assert.exists(
+        transferTx,
+        "personal-a→personal-b should resolve to pb-payee via transferAccounts",
+      )
+      assert.equal(transferTx!.amount, -50000)
+
+      // Without transferAccounts this same transaction would have fallen back
+      // to payee_name — verify the fallback behaviour for contrast
+      const resultsNoTransfer = yield* runCollect({
+        accounts: [
+          { bankAccountId: "personal-a", actualAccountId: "actual-personal-a" },
+          { bankAccountId: "joint", actualAccountId: "actual-joint" },
+        ],
+        syncDuration: Duration.days(30),
+        categorize: false,
+        categories: testCategories,
+        payees: crossPayees,
+      }).pipe(Effect.provide(layer))
+
+      const personalANoTransfer = resultsNoTransfer.find(
+        (r) => r.actualAccountId === "actual-personal-a",
+      )!
+      const fallbackTx = personalANoTransfer.transactions.find(
+        (t) => payeeName(t) === "Transfer to Partner",
+      )
+      assert.exists(
+        fallbackTx,
+        "without transferAccounts, the same transaction should fall back to payee_name",
+      )
+    }),
+)

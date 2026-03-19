@@ -63,9 +63,17 @@ const clearedOnly = Flag.boolean("cleared-only").pipe(
   Flag.withAlias("C"),
 )
 
+const transferAccounts = Flag.keyValuePair("transfer-accounts").pipe(
+  Flag.optional,
+  Flag.withDescription(
+    "Accounts used for transfer resolution only (not synced), in the format 'actual-account-id=bank-account-id'",
+  ),
+)
+
 const actualsync = Command.make("actualsync", {
   bank,
   accounts,
+  transferAccounts,
   categorize,
   categories,
   timezone,
@@ -73,13 +81,29 @@ const actualsync = Command.make("actualsync", {
   clearedOnly,
 }).pipe(
   Command.withHandler(
-    ({ accounts, categorize, categories, bank, syncDuration, clearedOnly }) =>
+    ({
+      accounts,
+      transferAccounts,
+      categorize,
+      categories,
+      bank,
+      syncDuration,
+      clearedOnly,
+    }) =>
       Sync.run({
         accounts: Object.entries(accounts).map(
           ([actualAccountId, bankAccountId]) => ({
             actualAccountId,
             bankAccountId,
           }),
+        ),
+        transferAccounts: Option.getOrUndefined(
+          Option.map(transferAccounts, (ta) =>
+            Object.entries(ta).map(([actualAccountId, bankAccountId]) => ({
+              actualAccountId,
+              bankAccountId,
+            })),
+          ),
         ),
         categorize,
         categoryMapping: Option.getOrUndefined(

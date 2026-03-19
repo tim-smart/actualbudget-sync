@@ -8,6 +8,7 @@ import {
   Duration,
   Effect,
   Fiber,
+  Option,
   pipe,
 } from "effect"
 import {
@@ -15,7 +16,7 @@ import {
   AccountTransactionOrder,
   Bank,
 } from "./Bank.ts"
-import { Actual, ActualError } from "./Actual.ts"
+import { Actual, type ActualError } from "./Actual.ts"
 
 const bigDecimal100 = BigDecimal.fromNumberUnsafe(100)
 const amountToInt = (amount: BigDecimal.BigDecimal) =>
@@ -23,6 +24,10 @@ const amountToInt = (amount: BigDecimal.BigDecimal) =>
 
 export const runCollect = Effect.fnUntraced(function* (options: {
   readonly accounts: ReadonlyArray<{
+    readonly bankAccountId: string
+    readonly actualAccountId: string
+  }>
+  readonly transferAccounts?: ReadonlyArray<{
     readonly bankAccountId: string
     readonly actualAccountId: string
   }>
@@ -56,8 +61,12 @@ export const runCollect = Effect.fnUntraced(function* (options: {
     return category ? category.id : undefined
   }
 
+  const allAccountsForTransfer = [
+    ...options.accounts,
+    ...(options.transferAccounts ?? []),
+  ]
   const transferAccountId = (transaction: AccountTransaction) => {
-    const transferToAccount = options.accounts.find(
+    const transferToAccount = allAccountsForTransfer.find(
       ({ bankAccountId }) => bankAccountId === transaction.transfer,
     )?.actualAccountId
     return options.payees.find((it) => it.transfer_acct === transferToAccount)
@@ -134,6 +143,10 @@ type ImportTransaction =
 
 export const run = Effect.fnUntraced(function* (options: {
   readonly accounts: ReadonlyArray<{
+    readonly bankAccountId: string
+    readonly actualAccountId: string
+  }>
+  readonly transferAccounts?: ReadonlyArray<{
     readonly bankAccountId: string
     readonly actualAccountId: string
   }>
@@ -241,9 +254,21 @@ export const run = Effect.fnUntraced(function* (options: {
       }
 
       const existing = alreadyImported.get(transaction.imported_id)
-      if (!existing) {
-        toImport.push(transaction)
+      if (existing) continue
+
+      // If this is a transfer transaction, check whether the other sync run
+      // already imported the opposite side — Actual will have auto-created a
+      // counterpart in this account. If one exists, skip importing to avoid
+      // creating a second transfer pair (and duplicate counterparts).
+      if ("payee" in transaction) {
+        const counterpart = yield* actual.findTransferCounterpart(
+          actualAccountId,
+          transaction.amount,
+        )
+        if (Option.isSome(counterpart)) continue
       }
+
+      toImport.push(transaction)
     }
     yield* actual.use((_) => _.importTransactions(actualAccountId, toImport))
   }

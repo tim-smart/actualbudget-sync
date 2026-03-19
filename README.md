@@ -125,6 +125,30 @@ spec:
       completions: 1
 ```
 
+## Up Bank — Shared Accounts (2UP)
+
+If you and a partner both use Up Bank and share a joint account (2UP), you will typically run two separate sync jobs — one per Up user token. Transfers between personal accounts (e.g. one partner sending money to the other) will appear in both feeds.
+
+To avoid duplicate transactions, pass the other person's account mapping via `--transfer-accounts`. These accounts are used only to resolve the transfer payee; their transactions are not fetched.
+
+```bash
+# Partner A's sync
+actualsync --bank up \
+  --accounts 'actual-a-id=up-a-id' \
+  --accounts 'actual-joint-id=up-joint-id' \
+  --transfer-accounts 'actual-b-id=up-b-id'
+
+# Partner B's sync
+actualsync --bank up \
+  --accounts 'actual-b-id=up-b-id' \
+  --accounts 'actual-joint-id=up-joint-id' \
+  --transfer-accounts 'actual-a-id=up-a-id'
+```
+
+When a transfer between the two personal accounts is detected, the sync imports it as a proper Actual Budget transfer on the first run and skips the counterpart on the second run, preventing duplicates.
+
+> If you previously had Actual Budget rules classifying `$username` payees as transfers, remove them — the sync now handles this automatically.
+
 ## Development / Debugging
 
 A VSCode launch configuration is included for running the Up Bank sync locally. To use it:
@@ -142,13 +166,14 @@ USAGE
   actualsync [flags]
 
 FLAGS
-  --bank choice             Which bank to use
-  --accounts key=value      Accounts to sync, in the format 'actual-account-id=bank-account-id'
-  --categorize, -c          If the bank supports categorization, try to categorize transactions
-  --categories key=value    Requires --categorize to have any effect. Maps the banks values to actual values with the format 'bank-category=actual-category'
-  --timezone string         The timezone to use to display transaction timestamps. Defaults to the bank timezone.
-  --sync-days integer       Number of days to sync (default: 30)
-  --cleared-only, -C        Only sync cleared transactions
+  --bank choice                    Which bank to use
+  --accounts key=value             Accounts to sync, in the format 'actual-account-id=bank-account-id'
+  --transfer-accounts key=value    Accounts used for transfer resolution only (not synced), in the format 'actual-account-id=bank-account-id'
+  --categorize, -c                 If the bank supports categorization, try to categorize transactions
+  --categories key=value           Requires --categorize to have any effect. Maps the banks values to actual values with the format 'bank-category=actual-category'
+  --timezone string                The timezone to use to display transaction timestamps. Defaults to the bank timezone.
+  --sync-days integer              Number of days to sync (default: 30)
+  --cleared-only, -C               Only sync cleared transactions
 
 GLOBAL FLAGS
   --help, -h              Show help information
