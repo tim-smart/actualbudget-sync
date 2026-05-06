@@ -16,6 +16,7 @@ runs:
       with:
         cache: pnpm
         node-version: ${{ inputs.node-version }}
+        registry-url: https://npm.pkg.github.com
     - name: Install dependencies
       shell: bash
       run: pnpm install --ignore-scripts

@@ -8,6 +8,7 @@ import {
   Duration,
   Effect,
   FiberSet,
+  Option,
   pipe,
 } from "effect"
 import {
@@ -23,6 +24,10 @@ const amountToInt = (amount: BigDecimal.BigDecimal) =>
 
 export const runCollect = Effect.fnUntraced(function* (options: {
   readonly accounts: ReadonlyArray<{
+    readonly bankAccountId: string
+    readonly actualAccountId: string
+  }>
+  readonly transferAccounts?: ReadonlyArray<{
     readonly bankAccountId: string
     readonly actualAccountId: string
   }>
@@ -56,8 +61,12 @@ export const runCollect = Effect.fnUntraced(function* (options: {
     return category ? category.id : undefined
   }
 
+  const allAccountsForTransfer = [
+    ...options.accounts,
+    ...(options.transferAccounts ?? []),
+  ]
   const transferAccountId = (transaction: AccountTransaction) => {
-    const transferToAccount = options.accounts.find(
+    const transferToAccount = allAccountsForTransfer.find(
       ({ bankAccountId }) => bankAccountId === transaction.transfer,
     )?.actualAccountId
     return options.payees.find((it) => it.transfer_acct === transferToAccount)
@@ -134,6 +143,10 @@ type ImportTransaction =
 
 export const run = Effect.fnUntraced(function* (options: {
   readonly accounts: ReadonlyArray<{
+    readonly bankAccountId: string
+    readonly actualAccountId: string
+  }>
+  readonly transferAccounts?: ReadonlyArray<{
     readonly bankAccountId: string
     readonly actualAccountId: string
   }>
@@ -224,9 +237,26 @@ export const run = Effect.fnUntraced(function* (options: {
   yield* FiberSet.awaitEmpty(fibers)
 
   for (const [actualAccountId, transactions] of newTransactions) {
+    let toImport: Array<ImportTransaction> = []
+    for (const transaction of transactions) {
+      // If this is a transfer transaction, check whether the other sync run
+      // already imported the opposite side — Actual will have auto-created a
+      // counterpart in this account. If one exists, skip importing to avoid
+      // creating a second transfer pair (and duplicate counterparts).
+      // "payee" (a payee ID) identifies a transfer; "payee_name" identifies a regular transaction.
+      if ("payee" in transaction) {
+        const counterpart = yield* actual.findTransferCounterpart(
+          actualAccountId,
+          transaction.amount,
+          transaction.date,
+        )
+        if (Option.isSome(counterpart)) continue
+      }
+      toImport.push(transaction)
+    }
     yield* FiberSet.run(
       fibers,
-      actual.use((_) => _.importTransactions(actualAccountId, transactions)),
+      actual.use((_) => _.importTransactions(actualAccountId, toImport)),
     )
   }
   yield* FiberSet.awaitEmpty(fibers)

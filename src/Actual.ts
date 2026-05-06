@@ -2,6 +2,7 @@
  * @since 1.0.0
  */
 import {
+  Array,
   Config,
   Data,
   Effect,
@@ -23,6 +24,12 @@ export type Query = ReturnType<typeof Api.q>
 export class ActualError extends Data.TaggedError("ActualError")<{
   readonly cause: unknown
 }> {}
+
+const pad = (n: number) => n.toString().padStart(2, "0")
+const fmtUtcDate = (ms: number) => {
+  const d = new Date(ms)
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`
+}
 
 export class Actual extends ServiceMap.Service<Actual>()("Actual", {
   make: Effect.gen(function* () {
@@ -156,7 +163,41 @@ export class Actual extends ServiceMap.Service<Actual>()("Actual", {
       )
     }
 
-    return { use, query, findImported } as const
+    // Find an auto-created transfer counterpart (no imported_id) matching the
+    // given account and amount. Used to detect when the other side of a
+    // cross-user transfer has already been imported by a separate sync run.
+    const findTransferCounterpart = (
+      accountId: string,
+      amount: number,
+      date: string,
+    ) => {
+      // Compute a ±1-day window to tolerate timezone date shifts.
+      const epochMs = Date.UTC(
+        +date.slice(0, 4),
+        +date.slice(5, 7) - 1,
+        +date.slice(8, 10),
+      )
+      const dayMs = 86_400_000
+      const dateMin = fmtUtcDate(epochMs - dayMs)
+      const dateMax = fmtUtcDate(epochMs + dayMs)
+
+      return query<TransactionEntity>((q) =>
+        q("transactions").select(["*"]).filter({ account: accountId, amount }),
+      ).pipe(
+        Effect.map(
+          Array.findFirst(
+            (tx) =>
+              tx.transfer_id != null &&
+              tx.imported_id == null &&
+              tx.date != null &&
+              tx.date >= dateMin &&
+              tx.date <= dateMax,
+          ),
+        ),
+      )
+    }
+
+    return { use, query, findImported, findTransferCounterpart } as const
   }),
 }) {
   static layer = Layer.effect(this)(this.make).pipe(

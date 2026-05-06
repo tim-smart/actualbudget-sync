@@ -9,3 +9,4 @@ dist/
 build/
 .lalph/
 .repos/
+.pnpm-store/
