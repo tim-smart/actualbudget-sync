@@ -161,6 +161,7 @@ class Transaction extends Schema.Class<Transaction>("Transaction")({
 }) {
   accountTransactions(): NonEmptyReadonlyArray<AccountTransaction> {
     const dateTime = this.attributes.createdAt
+    const settledDateTime = this.attributes.settledAt ?? undefined
     const cleared = this.attributes.status === "SETTLED"
     const amount = moneyToBigDecimal(this.attributes.amount)
     const description = this.attributes.description
@@ -182,6 +183,7 @@ class Transaction extends Schema.Class<Transaction>("Transaction")({
 
     const base: AccountTransaction = {
       dateTime,
+      settledDateTime,
       amount,
       payee: description,
       notes,
@@ -196,6 +198,7 @@ class Transaction extends Schema.Class<Transaction>("Transaction")({
       const cb = this.attributes.cashback
       const cashbackTx: AccountTransaction = {
         dateTime,
+        settledDateTime,
         amount: moneyToBigDecimal(cb.amount),
         payee: cb.description,
         notes: baseNotes,

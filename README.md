@@ -9,6 +9,11 @@ Features:
   real-time updates.
   - When the pending transaction is cleared, it will update the transaction
     in Actual Budget with the cleared amount.
+  - With `--settled-date`, the transaction date is also updated to the bank's
+    settled/processed date when a pending transaction clears (for Akahu this
+    uses the time Akahu first saw the settled transaction). This is intended
+    for ongoing scheduled syncs — avoid it for initial historical imports,
+    where the settled timestamps may not reflect the real processing dates.
   - If the payee name is updated by the bank, it will also update the
     transaction in Actual Budget if you haven't renamed it already.
 - Automatically matches the API client with the Actual server version, so you
@@ -149,6 +154,7 @@ FLAGS
   --timezone string         The timezone to use to display transaction timestamps. Defaults to the bank timezone.
   --sync-days integer       Number of days to sync (default: 30)
   --cleared-only, -C        Only sync cleared transactions
+  --settled-date            Use the bank's settled/processed date for transaction dates when available. When a pending transaction clears, its date is updated to the settled date.
 
 GLOBAL FLAGS
   --help, -h              Show help information

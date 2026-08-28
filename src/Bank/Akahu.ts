@@ -185,6 +185,7 @@ export class Transaction extends Schema.Class<Transaction>("Transaction")({
   _user: UserId,
   _connection: ConnectionId,
   date: Schema.DateTimeUtcFromString,
+  created_at: Schema.optional(Schema.DateTimeUtcFromString),
   description: Schema.String,
   amount: BigDecimalFromNumber,
   merchant: Schema.optional(Merchant),
@@ -193,6 +194,7 @@ export class Transaction extends Schema.Class<Transaction>("Transaction")({
   accountTransaction(timeZone: DateTime.TimeZone): AccountTransaction {
     return {
       dateTime: this.date.pipe(DateTime.setZone(timeZone)),
+      settledDateTime: this.created_at?.pipe(DateTime.setZone(timeZone)),
       amount: this.amount,
       payee: this.merchant?.name ?? this.description,
       category: this.category?.name,
