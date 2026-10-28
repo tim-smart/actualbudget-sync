@@ -28,6 +28,9 @@ const baseUrl = "https://api.up.com.au/api/v1"
 
 export const UpBankLayer = Effect.gen(function* () {
   const userToken = yield* Config.redacted("UP_USER_TOKEN")
+  const timeZone = (yield* Effect.serviceOption(DateTime.CurrentTimeZone)).pipe(
+    Option.getOrElse(() => DateTime.zoneMakeNamedUnsafe("Australia/Melbourne")),
+  )
   const client = (yield* HttpClient.HttpClient).pipe(
     HttpClient.mapRequest(
       flow(
@@ -88,7 +91,7 @@ export const UpBankLayer = Effect.gen(function* () {
         },
       }),
     ).pipe(
-      Stream.mapArray(Array.flatMap((t) => t.accountTransactions())),
+      Stream.mapArray(Array.flatMap((t) => t.accountTransactions(timeZone))),
       Stream.tap(() => {
         count++
         return count % 500 === 0
@@ -159,8 +162,10 @@ class Transaction extends Schema.Class<Transaction>("Transaction")({
     }),
   }),
 }) {
-  accountTransactions(): NonEmptyReadonlyArray<AccountTransaction> {
-    const dateTime = this.attributes.createdAt
+  accountTransactions(
+    timeZone: DateTime.TimeZone,
+  ): NonEmptyReadonlyArray<AccountTransaction> {
+    const dateTime = this.attributes.createdAt.pipe(DateTime.setZone(timeZone))
     const cleared = this.attributes.status === "SETTLED"
     const amount = moneyToBigDecimal(this.attributes.amount)
     const description = this.attributes.description
