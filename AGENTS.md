@@ -19,5 +19,5 @@ Use this for learning more about the library, rather than browsing the code in
 If it does not exist yet, you can clone the repository with:
 
 ```bash
-git clone https://github.com/Effect-TS/effect-smol.git .repos/effect
+git clone https://github.com/Effect-TS/effect.git .repos/effect
 ```

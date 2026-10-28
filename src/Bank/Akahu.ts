@@ -12,24 +12,24 @@ import {
   Schedule,
   Schema,
   SchemaGetter,
-  ServiceMap,
+  Context,
   Stream,
 } from "effect"
 import { type AccountTransaction, Bank, BankError } from "../Bank.ts"
-import { HttpClient, HttpClientRequest } from "effect/unstable/http"
+import { HttpClient, HttpClientRequest } from "effect/http"
 import {
   HttpApi,
   HttpApiClient,
   HttpApiEndpoint,
   HttpApiGroup,
-} from "effect/unstable/httpapi"
+} from "effect/http-api"
 import { BigDecimalFromNumber } from "../Schema.ts"
 import { NodeHttpClient } from "@effect/platform-node"
 
-export class Akahu extends ServiceMap.Service<Akahu>()("Bank/Akahu", {
+export class Akahu extends Context.Service<Akahu>()("Bank/Akahu", {
   make: Effect.gen(function* () {
-    const appToken = yield* Config.redacted("AKAHU_APP_TOKEN")
-    const userToken = yield* Config.redacted("AKAHU_USER_TOKEN")
+    const appToken = yield* Config.Redacted("AKAHU_APP_TOKEN")
+    const userToken = yield* Config.Redacted("AKAHU_USER_TOKEN")
     const httpClient = (yield* HttpClient.HttpClient).pipe(
       HttpClient.mapRequest(
         flow(
@@ -71,7 +71,7 @@ export class Akahu extends ServiceMap.Service<Akahu>()("Bank/Akahu", {
           onSome: (dt) => Option.some(DateTime.min(dt, curr)),
         }),
       ),
-      Effect.flatMap(Effect.fromYieldable),
+      Effect.flatMap(Effect.fromOption),
       Effect.orDie,
     )
 
@@ -128,11 +128,13 @@ export const AkahuLayer = Effect.gen(function* () {
     Effect.flatMap((refreshed) =>
       DateTime.isGreaterThanOrEqualTo(refreshed, beforeRefresh)
         ? Effect.void
-        : new BankError({
-            reason: "Unknown",
-            bank: "Akahu",
-            cause: new Error("Refresh did not update transactions"),
-          }).asEffect(),
+        : Effect.fail(
+            new BankError({
+              reason: "Unknown",
+              bank: "Akahu",
+              cause: new Error("Refresh did not update transactions"),
+            }),
+          ),
     ),
     Effect.retry({
       times: 5,
@@ -144,7 +146,7 @@ export const AkahuLayer = Effect.gen(function* () {
   return Bank.of({
     exportAccount: (accountId, options) =>
       pipe(
-        akahu.transactions(AccountId.makeUnsafe(accountId), options),
+        akahu.transactions(AccountId.make(accountId), options),
         Stream.runCollect,
         Effect.map(Array.map((t) => t.accountTransaction(timeZone))),
         Effect.mapError(
@@ -230,7 +232,7 @@ export class PendingTransaction extends Schema.Class<PendingTransaction>(
 
 const OptionalDateTimeUtc = Schema.optional(Schema.DateTimeUtcFromString).pipe(
   Schema.decodeTo(Schema.DateTimeUtc, {
-    decode: SchemaGetter.withDefault(DateTime.nowUnsafe),
+    decode: SchemaGetter.withDefault(DateTime.now),
     encode: SchemaGetter.passthrough(),
   }),
 )
