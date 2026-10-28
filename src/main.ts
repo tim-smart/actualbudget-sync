@@ -65,6 +65,12 @@ const clearedOnly = Flag.Boolean("cleared-only").pipe(
   Flag.withDefault(false),
 )
 
+const settledDate = Flag.boolean("settled-date").pipe(
+  Flag.withDescription(
+    "Use the bank's settled/processed date for transaction dates when available. When a pending transaction clears, its date is updated to the settled date.",
+  ),
+)
+
 const actualsync = Command.make("actualsync", {
   bank,
   accounts,
@@ -73,9 +79,18 @@ const actualsync = Command.make("actualsync", {
   timezone,
   syncDuration,
   clearedOnly,
+  settledDate,
 }).pipe(
   Command.withHandler(
-    ({ accounts, categorize, categories, bank, syncDuration, clearedOnly }) =>
+    ({
+      accounts,
+      categorize,
+      categories,
+      bank,
+      syncDuration,
+      clearedOnly,
+      settledDate,
+    }) =>
       Sync.run({
         accounts: Object.entries(accounts).map(
           ([actualAccountId, bankAccountId]) => ({
@@ -96,6 +111,7 @@ const actualsync = Command.make("actualsync", {
         ),
         syncDuration,
         clearedOnly,
+        settledDate,
       }).pipe(Effect.provide(Layer.mergeAll(banks[bank], Actual.layer))),
   ),
   Command.provide(({ timezone }) => timezone),

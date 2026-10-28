@@ -240,6 +240,23 @@ it.layer(shortSyncLayer)("Short sync (<30 days, <100 transactions)", (it) => {
       assert.exists(tx)
       assert.equal(tx!.amount, -2050)
       assert.equal(tx!.cleared, true)
+      // Without settledDate the createdAt date is used
+      assert.equal(tx!.date, "2024-01-14")
+    }),
+  )
+
+  it.effect("settledDate uses settledAt for SETTLED transactions", () =>
+    Effect.gen(function* () {
+      const results = yield* runTest({ categorize: false, settledDate: true })
+      const settled = results.find((r) => payeeName(r) === "Woolworths")
+      assert.exists(settled)
+      assert.equal(settled!.date, "2024-01-10")
+      assert.equal(settled!.imported_id, "settled-1")
+      // HELD transactions have no settledAt, so createdAt is still used
+      const held = results.find((r) => payeeName(r) === "Pending Coffee")
+      assert.exists(held)
+      assert.equal(held!.date, "2024-01-14")
+      assert.equal(held!.imported_id, "held-1")
     }),
   )
 

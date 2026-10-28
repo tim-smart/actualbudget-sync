@@ -23,6 +23,7 @@ export class Bank extends Context.Service<
 
 export interface AccountTransaction {
   readonly dateTime: DateTime.DateTime
+  readonly settledDateTime?: DateTime.DateTime
   readonly amount: BigDecimal.BigDecimal
   readonly payee: string
   readonly notes?: string

@@ -41,6 +41,7 @@ export const runCollect = Effect.fnUntraced(function* (options: {
     readonly transfer_acct?: string
   }>
   readonly syncDuration: Duration.Duration
+  readonly settledDate?: boolean
 }) {
   const bank = yield* Bank
   const importId = makeImportId()
@@ -90,7 +91,11 @@ export const runCollect = Effect.fnUntraced(function* (options: {
           return {
             account: actualAccountId,
             imported_id,
-            date: DateTime.formatIsoDate(transaction.dateTime),
+            date: DateTime.formatIsoDate(
+              options.settledDate && transaction.settledDateTime !== undefined
+                ? transaction.settledDateTime
+                : transaction.dateTime,
+            ),
             ...(transferPayee
               ? { payee: transferPayee }
               : { payee_name: transaction.payee }),
@@ -144,6 +149,7 @@ export const run = Effect.fnUntraced(function* (options: {
   }>
   readonly syncDuration: Duration.Duration
   readonly clearedOnly: boolean
+  readonly settledDate: boolean
 }) {
   const actual = yield* Actual
   const fibers = yield* FiberSet.make()
@@ -184,6 +190,7 @@ export const run = Effect.fnUntraced(function* (options: {
             _.updateTransaction(existing.id, {
               cleared: true,
               amount: transaction.amount,
+              ...(options.settledDate ? { date: transaction.date } : {}),
               ...(!existing.category && transaction.category
                 ? { category: transaction.category }
                 : {}),
@@ -270,6 +277,7 @@ export const runTest = Effect.fnUntraced(function* (options: {
     readonly bankCategory: string
     readonly actualCategory: string
   }>
+  readonly settledDate?: boolean
 }) {
   const results = yield* runCollect({
     ...options,
