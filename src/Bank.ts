@@ -1,14 +1,7 @@
 /**
  * @since 1.0.0
  */
-import {
-  BigDecimal,
-  Data,
-  DateTime,
-  type Effect,
-  Order,
-  ServiceMap,
-} from "effect"
+import { BigDecimal, Data, DateTime, type Effect, Order, Context } from "effect"
 
 export class BankError extends Data.TaggedError("BankError")<{
   readonly reason: "AccountNotFound" | "Unauthorized" | "Unknown"
@@ -16,7 +9,7 @@ export class BankError extends Data.TaggedError("BankError")<{
   readonly cause?: unknown
 }> {}
 
-export class Bank extends ServiceMap.Service<
+export class Bank extends Context.Service<
   Bank,
   {
     readonly exportAccount: (

@@ -19,18 +19,18 @@ const AkahuTest = Layer.succeed(Akahu)(
       accountId === "checking"
         ? Stream.make(
             new PendingTransaction({
-              _user: UserId.makeUnsafe("1"),
-              _account: AccountId.makeUnsafe("1"),
-              _connection: ConnectionId.makeUnsafe("1"),
+              _user: UserId.make("1"),
+              _account: AccountId.make("1"),
+              _connection: ConnectionId.make("1"),
               date: DateTime.makeUnsafe("2021-01-01T00:00:00Z"),
               description: "Pending transaction",
               amount: BigDecimal.fromStringUnsafe("100.50"),
             }),
             new Transaction({
               _id: "1",
-              _user: UserId.makeUnsafe("1"),
-              _account: AccountId.makeUnsafe("1"),
-              _connection: ConnectionId.makeUnsafe("1"),
+              _user: UserId.make("1"),
+              _account: AccountId.make("1"),
+              _connection: ConnectionId.make("1"),
               date: DateTime.makeUnsafe("2021-01-02T00:00:00Z"),
               description: "Transaction",
               amount: BigDecimal.fromStringUnsafe("200.50"),

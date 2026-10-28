@@ -15,19 +15,15 @@ import {
 } from "effect"
 import { NodeHttpClient } from "@effect/platform-node"
 import { type AccountTransaction, Bank } from "../Bank.ts"
-import {
-  HttpClient,
-  HttpClientRequest,
-  HttpClientResponse,
-} from "effect/unstable/http"
+import { HttpClient, HttpClientRequest, HttpClientResponse } from "effect/http"
 import { BigDecimalFromNumber } from "../Schema.ts"
 import type { NonEmptyReadonlyArray } from "effect/Array"
-import { RateLimiter } from "effect/unstable/persistence"
+import { RateLimiter } from "effect/persistence"
 
 const baseUrl = "https://api.up.com.au/api/v1"
 
 export const UpBankLayer = Effect.gen(function* () {
-  const userToken = yield* Config.redacted("UP_USER_TOKEN")
+  const userToken = yield* Config.Redacted("UP_USER_TOKEN")
   const timeZone = (yield* Effect.serviceOption(DateTime.CurrentTimeZone)).pipe(
     Option.getOrElse(() => DateTime.zoneMakeNamedUnsafe("Australia/Melbourne")),
   )

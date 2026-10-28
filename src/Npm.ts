@@ -4,23 +4,11 @@ import {
   NodePath,
   NodeSink,
 } from "@effect/platform-node"
-import {
-  Data,
-  Effect,
-  FileSystem,
-  Layer,
-  Path,
-  ServiceMap,
-  Stream,
-} from "effect"
-import {
-  HttpClient,
-  HttpClientRequest,
-  HttpClientResponse,
-} from "effect/unstable/http"
+import { Data, Effect, FileSystem, Layer, Path, Context, Stream } from "effect"
+import { HttpClient, HttpClientRequest, HttpClientResponse } from "effect/http"
 import * as Tar from "tar"
 
-export class Npm extends ServiceMap.Service<Npm>()("Npm", {
+export class Npm extends Context.Service<Npm>()("Npm", {
   make: Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem
     const path = yield* Path.Path

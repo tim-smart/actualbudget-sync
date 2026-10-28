@@ -3,8 +3,8 @@ import {
   HttpClient,
   type HttpClientRequest,
   HttpClientResponse,
-} from "effect/unstable/http"
-import { RateLimiter } from "effect/unstable/persistence"
+} from "effect/http"
+import { RateLimiter } from "effect/persistence"
 import { assert, it } from "@effect/vitest"
 import { UpBankLayer } from "./Up.ts"
 import type { Bank } from "../Bank.ts"
