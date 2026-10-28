@@ -27,8 +27,6 @@ jobs:
         uses: ./.github/actions/setup
       - run: pnpm test
       - run: pnpm build
-      - name: Upgrade npm for OIDC support
-        run: npm install -g npm@latest
       - name: Create Release Pull Request or Publish
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         id: changesets
