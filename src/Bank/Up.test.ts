@@ -1,4 +1,4 @@
-import { ConfigProvider, Duration, Effect, Layer, Ref } from "effect"
+import { ConfigProvider, DateTime, Duration, Effect, Layer, Ref } from "effect"
 import {
   HttpClient,
   type HttpClientRequest,
@@ -306,6 +306,39 @@ it.layer(shortSyncLayer)("Short sync (<30 days, <100 transactions)", (it) => {
       }),
   )
 })
+
+// ---------------------------------------------------------------------------
+// Transaction dates — Up timestamps are converted to the display time zone
+// before the date is taken, so a 9am AEDT purchase (22:00 UTC the day before)
+// isn't dated the previous day
+// ---------------------------------------------------------------------------
+
+it.effect("dates transactions in Australian time by default", () =>
+  Effect.gen(function* () {
+    const results = yield* runTest({ categorize: false }).pipe(
+      Effect.provide(shortSyncLayer),
+    )
+    // createdAt "2024-01-15T09:00:00+11:00" = UTC 2024-01-14T22:00:00Z
+    const tx = results.find((r) => payeeName(r) === "Woolworths")
+    assert.exists(tx)
+    assert.equal(tx!.date, "2024-01-15")
+  }),
+)
+
+it.effect("dates transactions in the --timezone zone when set", () =>
+  Effect.gen(function* () {
+    const results = yield* runTest({ categorize: false }).pipe(
+      Effect.provide(
+        shortSyncLayer.pipe(
+          Layer.provide(DateTime.layerCurrentZoneNamed("UTC")),
+        ),
+      ),
+    )
+    const tx = results.find((r) => payeeName(r) === "Woolworths")
+    assert.exists(tx)
+    assert.equal(tx!.date, "2024-01-14")
+  }),
+)
 
 // ---------------------------------------------------------------------------
 // Test 3 — Long single-account sync: 100 pages × 100 transactions = 10 000
