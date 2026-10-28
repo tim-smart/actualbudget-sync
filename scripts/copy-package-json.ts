@@ -4,7 +4,7 @@ import { Effect, pipe } from "effect"
 import * as path from "node:path"
 
 const read = pipe(
-  FileSystem.asEffect(),
+  FileSystem,
   Effect.flatMap((fileSystem) => fileSystem.readFileString("package.json")),
   Effect.map((_) => JSON.parse(_)),
   Effect.map((json) => ({
@@ -26,7 +26,7 @@ const pathTo = path.join("dist", "package.json")
 
 const write = (pkg: object) =>
   pipe(
-    FileSystem.asEffect(),
+    FileSystem,
     Effect.flatMap((fileSystem) =>
       fileSystem.writeFileString(pathTo, JSON.stringify(pkg, null, 2)),
     ),

@@ -30,11 +30,11 @@
   "devDependencies": {
     "@changesets/changelog-github": "^0.6.0",
     "@changesets/cli": "^2.30.0",
-    "@effect/language-service": "^0.80.0",
-    "@effect/platform-node": "4.0.0-beta.35",
-    "@effect/vitest": "4.0.0-beta.35",
+    "@effect/language-service": "^0.87.5",
+    "@effect/platform-node": "4.0.7",
+    "@effect/vitest": "4.0.7",
     "@types/node": "^25.5.0",
-    "effect": "4.0.0-beta.35",
+    "effect": "4.0.7",
     "glob": "^13.0.6",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
@@ -45,7 +45,7 @@
     "tsup": "^8.5.1",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.0"
+    "vitest": "^5.0.5"
   },
   "dependencies": {
     "@actual-app/api": "26.3.0",

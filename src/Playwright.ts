@@ -1,14 +1,14 @@
 /**
  * @since 1.0.0
  */
-import { Config, Data, Effect, Layer, ServiceMap } from "effect"
+import { Config, Data, Effect, Layer, Context } from "effect"
 import * as Api from "playwright"
 
 export class PlaywrightError extends Data.TaggedError("PlaywrightError")<{
   readonly cause: unknown
 }> {}
 
-export class Browser extends ServiceMap.Service<Browser, Api.Browser>()(
+export class Browser extends Context.Service<Browser, Api.Browser>()(
   "Playwright/Browser",
 ) {
   static readonly layerChromium = (options?: Api.LaunchOptions) =>
@@ -24,7 +24,7 @@ export class Browser extends ServiceMap.Service<Browser, Api.Browser>()(
 
   static Live = Layer.unwrap(
     Effect.gen({ self: this }, function* () {
-      const isProd = yield* Config.string("NODE_ENV").pipe(
+      const isProd = yield* Config.String("NODE_ENV").pipe(
         Config.map((env) => env === "production"),
         Config.withDefault(false),
       )
@@ -37,13 +37,13 @@ export class Browser extends ServiceMap.Service<Browser, Api.Browser>()(
   )
 }
 
-export class BrowserContext extends ServiceMap.Service<
+export class BrowserContext extends Context.Service<
   BrowserContext,
   Api.BrowserContext
 >()("Playwright/BrowserContext") {
   static layer = (options?: Api.BrowserContextOptions) =>
     Layer.effect(this)(
-      Effect.flatMap(Browser.asEffect(), (browser) =>
+      Effect.flatMap(Browser, (browser) =>
         Effect.acquireRelease(
           Effect.tryPromise({
             try: () => browser.newContext(options),
@@ -57,11 +57,9 @@ export class BrowserContext extends ServiceMap.Service<
   static Live = this.layer().pipe(Layer.provide(Browser.Live))
 }
 
-export class Page extends ServiceMap.Service<Page, Api.Page>()(
-  "Playwright/Page",
-) {
+export class Page extends Context.Service<Page, Api.Page>()("Playwright/Page") {
   static layer = Layer.effect(this)(
-    Effect.flatMap(BrowserContext.asEffect(), (context) =>
+    Effect.flatMap(BrowserContext, (context) =>
       Effect.acquireRelease(
         Effect.tryPromise({
           try: () => context.newPage(),

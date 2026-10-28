@@ -8,7 +8,7 @@ import {
   Layer,
   Redacted,
   Schema,
-  ServiceMap,
+  Context,
   Stream,
 } from "effect"
 import * as Api from "@actual-app/api"
@@ -16,7 +16,7 @@ import ApiPackage from "@actual-app/api/package.json" with { type: "json" }
 import { Npm } from "./Npm.ts"
 import { NodeHttpClient } from "@effect/platform-node"
 import type { TransactionEntity } from "@actual-app/api/@types/loot-core/src/types/models/transaction.js"
-import { HttpClient, HttpClientResponse } from "effect/unstable/http"
+import { HttpClient, HttpClientResponse } from "effect/http"
 
 export type Query = ReturnType<typeof Api.q>
 
@@ -24,21 +24,21 @@ export class ActualError extends Data.TaggedError("ActualError")<{
   readonly cause: unknown
 }> {}
 
-export class Actual extends ServiceMap.Service<Actual>()("Actual", {
+export class Actual extends Context.Service<Actual>()("Actual", {
   make: Effect.gen(function* () {
     const httpClient = (yield* HttpClient.HttpClient).pipe(
       HttpClient.filterStatusOk,
     )
     const npm = yield* Npm
-    const dataDir = yield* Config.string("ACTUAL_DATA").pipe(
+    const dataDir = yield* Config.String("ACTUAL_DATA").pipe(
       Config.withDefault("data"),
     )
-    const server = yield* Config.url("ACTUAL_SERVER")
-    const password = yield* Config.redacted("ACTUAL_PASSWORD")
-    const encryptionPassword = yield* Config.redacted(
+    const server = yield* Config.URL("ACTUAL_SERVER")
+    const password = yield* Config.Redacted("ACTUAL_PASSWORD")
+    const encryptionPassword = yield* Config.Redacted(
       "ACTUAL_ENCRYPTION_PASSWORD",
     ).pipe(Config.withDefault(undefined))
-    const syncId = yield* Config.string("ACTUAL_SYNC_ID")
+    const syncId = yield* Config.String("ACTUAL_SYNC_ID")
 
     if (!server.pathname.endsWith("/")) {
       server.pathname += "/"
